@@ -60,11 +60,11 @@ st.markdown("""
     
     .lot-box { background: linear-gradient(135deg, #1e293b, #0f172a); border-left: 5px solid #38bdf8; padding: 12px; border-radius: 4px; margin-bottom: 15px; }
 
-    /* REFRESH BUTTON POSITION (ETWAS TIEFER GESETZT) */
+    /* REFRESH BUTTON POSITION (UNTERE MARKIERUNG MIT WEISSEM RING) */
     div.stButton > button {
         position: fixed !important;
         right: 25px !important;
-        bottom: 80px !important; /* Etwas tiefer gesetzt wie gewünscht */
+        bottom: 135px !important; /* Exakt auf Höhe der Lots platziert */
         z-index: 999999 !important;
         border-radius: 50% !important;
         width: 54px !important;
@@ -80,43 +80,41 @@ st.markdown("""
     div.stButton > button p { display: none !important; }
     div.stButton > button::before { content: "↻" !important; font-size: 24px; font-weight: bold; }
     
-    /* --- SIDEBAR RECHTS & SILBERNER PFEIL RADIKAL ERZWUNGEN --- */
+    /* --- RADIKALE SEPARIERUNG & NEUPOSITIONIERUNG DER SIDEBAR --- */
     
-    /* Hauptlayout spiegeln */
+    /* Layout auf Rechtslauf umstellen */
     .stApp { flex-direction: row-reverse !important; }
     
-    /* Originalen linken Button komplett unsichtbar machen */
-    [data-testid="stSidebarCollapsedControl"] button { display: none !important; }
-    
-    /* Einen komplett neuen, unübersehbaren silbernen Trigger oben rechts erstellen */
+    /* Das Bedienelement komplett entkoppeln und starr oben rechts fixieren */
     [data-testid="stSidebarCollapsedControl"] {
+        position: fixed !important;
         left: auto !important;
-        right: 20px !important; /* Exakt am oberen roten Punkt */
-        top: 20px !important;
-        width: 44px !important;
-        height: 44px !important;
-        background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 45%, #b8b8b8 70%, #8e8e8e 100%) !important; /* Starker Silber-Metallic Schimmer */
-        border: 2px solid #ffffff !important;
-        border-radius: 10px !important;
-        box-shadow: 0px 4px 15px rgba(255, 255, 255, 0.4) !important;
+        right: 20px !important; /* Exakt an der oberen roten Markierung */
+        top: 15px !important;
+        z-index: 9999999 !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        cursor: pointer !important;
+        width: 45px !important;
+        height: 45px !important;
+        background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 40%, #b0b0b0 70%, #888888 100%) !important; /* Silber-Metallic Schimmer */
+        border: 2px solid #ffffff !important;
+        border-radius: 10px !important;
+        box-shadow: 0px 4px 12px rgba(255, 255, 255, 0.3) !important;
     }
     
-    /* Modifiziert das Icon im Gehäuse, damit es dunkel und lesbar im Silber glänzt */
+    /* Den Pfeil im inneren des neuen Buttons umdrehen, damit er nach links zeigt */
     [data-testid="stSidebarCollapsedControl"] svg {
+        transform: rotate(180deg) !important;
         fill: #1e222b !important;
         color: #1e222b !important;
-        transform: rotate(180deg) !important; /* Dreht den Pfeil passend für rechts um */
     }
     
-    /* Sidebar visuell rechts verankern und abheben */
+    /* Die geöffnete Sidebar visuell rechts fixieren */
     section[data-testid="stSidebar"] {
         left: auto !important;
         right: 0 !important;
-        background-color: #2d333f !important; /* Erhöhter Kontrast */
+        background-color: #2d333f !important;
         border-left: 2px solid #3f444e !important;
         border-right: none !important;
         box-shadow: -5px 0px 25px rgba(0,0,0,0.6) !important;

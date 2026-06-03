@@ -60,50 +60,47 @@ st.markdown("""
     
     .lot-box { background: linear-gradient(135deg, #1e293b, #0f172a); border-left: 5px solid #38bdf8; padding: 12px; border-radius: 4px; margin-bottom: 15px; }
 
-    /* REFRESH BUTTON POSITION AN UNTERER ROTER MARKIERUNG (WEISSER RING) */
+    /* REFRESH BUTTON POSITION (NOCH TIEFER GESETZT) */
     div.stButton > button {
         position: fixed !important;
         right: 25px !important;
-        bottom: 155px !important; /* Exakt auf Höhe der Lots / untere Markierung */
+        bottom: 90px !important; /* Tiefer gesetzt */
         z-index: 999999 !important;
         border-radius: 50% !important;
-        width: 50px !important;
-        height: 50px !important;
+        width: 54px !important;
+        height: 54px !important;
         background-color: #38bdf8 !important;
         color: white !important;
-        border: 3px solid #ffffff !important; /* Weißer statt gelber Ring */
+        border: 3px solid #ffffff !important;
         box-shadow: 0px 4px 15px rgba(255, 255, 255, 0.4) !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
     }
     div.stButton > button p { display: none !important; }
-    div.stButton > button::before { content: "↻" !important; font-size: 22px; font-weight: bold; }
+    div.stButton > button::before { content: "↻" !important; font-size: 24px; font-weight: bold; }
     
-    /* SIDEBAR KOMPLETT NACH RECHTS VERSCHIEBEN */
+    /* SIDEBAR PFEIL OBEN RECHTS & SILBER SCHIMMERND */
     [data-testid="stSidebarCollapsedControl"] {
         left: auto !important;
-        right: 10px !important; /* Oben rechts platzieren */
-        background: linear-gradient(145deg, #ffffff, #a1a1a1) !important; /* Silberner Schimmer-Effekt */
+        right: 15px !important;
+        top: 15px !important;
+        background: linear-gradient(145deg, #ffffff, #a1a1a1) !important; /* Silberner Schimmer */
+        border: 1px solid #ffffff !important;
         border-radius: 8px !important;
         padding: 4px !important;
         box-shadow: 0px 0px 12px rgba(255, 255, 255, 0.4) !important;
     }
     
-    /* Sidebar-Inhalt-Ausrichtung */
+    /* SIDEBAR RECHTS AUSRICHTEN */
     section[data-testid="stSidebar"] {
         left: auto !important;
         right: 0 !important;
-        background-color: #2d333f !important; /* Erhöhter Kontrast (Helleres Grau) */
+        background-color: #2d333f !important;
         border-left: 2px solid #3f444e !important;
-        border-right: none !important;
-        box-shadow: -5px 0px 15px rgba(0,0,0,0.5) !important;
     }
     
-    /* Korrektur für das Streamlit Hauptlayout bei rechter Sidebar */
-    .stApp {
-        flex-direction: row-reverse !important;
-    }
+    .stApp { flex-direction: row-reverse !important; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -158,17 +155,13 @@ else:
 # --- INTELLIGENTE SIGNAL-PRÜFUNG ---
 is_bullish = current_price > avg_price
 abstand_absolut = abs(current_price - avg_price)
-
-# Bedingung: Der Preis darf maximal 1.50 Dollar vom SMA entfernt sein für ein scharfes Signal
 ist_nah_am_durchschnitt = abstand_absolut <= 1.50
 
-# Trendstärke-Prozentberechnung
 abstand_prozent = abstand_absolut / avg_price
 basis_chance = 60 if is_bullish else 40
 zusatz_chance = min(35, int(abstand_prozent * 5000))
 prob = min(95, basis_chance + zusatz_chance)
 
-# Weist den Boxen Werte zu
 if is_bullish:
     sl_price = current_price - sl_val
     tp_price = current_price + (sl_val * 3)
@@ -180,7 +173,7 @@ else:
     prefix_sl = "+"
     prefix_tp = "-"
 
-# SIGNAL ANZEIGEN ODER AUF MARKT WARTEN
+# SIGNAL ANZEIGEN
 if ist_nah_am_durchschnitt:
     if is_bullish:
         st.markdown(f"<div class='signal-buy'>🚀 BUY SIGNAL AKTIV • STÄRKE {prob}%</div>", unsafe_allow_html=True)
@@ -189,10 +182,9 @@ if ist_nah_am_durchschnitt:
 else:
     st.markdown(f"<div class='signal-wait'>⏳ MARKT BEOBACHTEN • Trend ist {'Up' if is_bullish else 'Down'} (Warte auf Rücksetzer)</div>", unsafe_allow_html=True)
 
-# Positionsgröße berechnen
 lots = round(risk_val / (sl_val * 100), 2)
 
-# HORIZONTALE TRADE-BOXEN (Originalgetreu & Fehlersicher)
+# HORIZONTALE TRADE-BOXEN
 trade_html = f"""
 <div class="trade-container">
     <div class="trade-box">
@@ -213,16 +205,15 @@ trade_html = f"""
 """
 st.markdown(trade_html, unsafe_allow_html=True)
 
-# Hauptanzeige Lots
-lot_html = f"""
+# Lot Anzeige
+st.markdown(f"""
 <div class='lot-box'>
     <span style='color: #38bdf8; font-weight: bold; font-size: 0.8rem;'>POSITIONSGRÖSSE</span><br>
     <span style='font-size: 1.5rem; font-weight: bold; color: #fff;'>{lots} Lots</span>
 </div>
-"""
-st.markdown(lot_html, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-# --- UNGEKÜRZTES ERWEITERTES AUSKLAPPBARES FENSTER FÜR DETAILS (EXPANDER) ---
+# --- EXPANDER MIT VOLLSTÄNDIGEN DETAILS ---
 with st.expander("🔍 Details & Lot-Rechner einblenden"):
     st.info(f"Um bei einem Verlust exakt **{risk_val} €** zu riskieren, musst du im MetaTrader 5 eine Positionsgröße von **{lots} Lots** eingeben.")
     st.markdown("---")

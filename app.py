@@ -71,7 +71,7 @@ st.markdown("""
     div.stButton > button {
         position: fixed !important;
         right: 20px !important;
-        bottom: 45px !important; /* Von 25px auf 45px angehoben */
+        bottom: 45px !important;
         z-index: 999999 !important;
         border-radius: 50% !important;
         width: 50px !important;
@@ -89,7 +89,7 @@ st.markdown("""
     
     /* SIDEBAR KONTRAST ERHÖHT */
     [data-testid="stSidebar"] {
-        background-color: #2d333f !important; /* Helleres Grau für besseren Kontrast */
+        background-color: #2d333f !important;
         border-left: 2px solid #3f444e !important;
         box-shadow: -5px 0px 15px rgba(0,0,0,0.5) !important;
     }
@@ -136,7 +136,7 @@ db = GoldLogic()
 current_price, high_today, low_today, avg_price, is_live = db.get_data()
 now = datetime.datetime.now().strftime("%H:%M:%S")
 
-# UI Header (Mit neuer CSS Klasse)
+# UI Header
 st.markdown('<div class="gold-title">💰 GOLD SCALPING <span class="pro-red">PRO</span></div>', unsafe_allow_html=True)
 
 if is_live:
@@ -161,9 +161,13 @@ prob = min(95, basis_chance + zusatz_chance)
 if is_bullish:
     sl_price = current_price - sl_val
     tp_price = current_price + (sl_val * 3)
+    prefix_sl = "-"
+    prefix_tp = "+"
 else:
     sl_price = current_price + sl_val
     tp_price = current_price - (sl_val * 3)
+    prefix_sl = "+"
+    prefix_tp = "-"
 
 # SIGNAL ANZEIGEN ODER AUF MARKT WARTEN
 if ist_nah_am_durchschnitt:
@@ -177,7 +181,7 @@ else:
 # Positionsgröße berechnen
 lots = round(risk_val / (sl_val * 100), 2)
 
-# HORIZONTALE TRADE-BOXEN
+# HORIZONTALE TRADE-BOXEN (Fehlersicher formatiert)
 trade_html = f"""
 <div class="trade-container">
     <div class="trade-box">
@@ -187,9 +191,42 @@ trade_html = f"""
     <div class="trade-box" style="border-color: #7f1d1d;">
         <span class="trade-label">Stop Loss</span>
         <span class="trade-value">{round(sl_price, 2)}</span>
-        <span class="delta-plus">{"-" if is_bullish else "+"}{sl_val}$</span>
+        <span class="delta-plus">{prefix_sl}{sl_val}$</span>
     </div>
     <div class="trade-box" style="border-color: #064e3b;">
         <span class="trade-label">Take Profit</span>
         <span class="trade-value">{round(tp_price, 2)}</span>
-        <span class
+        <span class="delta-minus">{prefix_tp}{sl_val*3}$</span>
+    </div>
+</div>
+"""
+st.markdown(trade_html, unsafe_allow_html=True)
+
+# Hauptanzeige Lots
+lot_html = f"""
+<div class='lot-box'>
+    <span style='color: #38bdf8; font-weight: bold; font-size: 0.8rem;'>POSITIONSGRÖSSE</span><br>
+    <span style='font-size: 1.5rem; font-weight: bold; color: #fff;'>{lots} Lots</span>
+</div>
+"""
+st.markdown(lot_html, unsafe_allow_html=True)
+
+# --- ERWEITERTES AUSKLAPPBARES FENSTER FÜR DETAILS (EXPANDER) ---
+with st.expander("🔍 Details & Lot-Rechner einblenden"):
+    st.info(f"Um bei einem Verlust exakt **{risk_val} €** zu riskieren, musst du im MetaTrader 5 eine Positionsgröße von **{lots} Lots** eingeben.")
+    st.markdown("---")
+    st.write("**Trading-Logik & Bedingungen:**")
+    st.markdown(f"""
+    - **Trendrichtung:** Kurs befindet sich aktuell *{'über' if is_bullish else 'unter'}* dem gleitenden Durchschnitt (SMA-20).
+    - **Einstiegs-Bedingung:** Ein Signal wird erst aktiv, wenn der Live-Kurs maximal **1.50 $** an den SMA heranreicht (Schutz vor Einstiegen in überteuerte Märkte).
+    - **Einstiegspreis:** Nutzt bei Signal-Aktivierung den aktuellen Sekunden-Kurs bei Klick auf Refresh.
+    """)
+    st.markdown("---")
+    st.write("**Tagesstatistiken (Rollierend):**")
+    col_stat1, col_stat2 = st.columns(2)
+    with col_stat1: st.metric(label="Höchstkurs (High)", value=f"{high_today} $")
+    with col_stat2: st.metric(label="Tiefstkurs (Low)", value=f"{low_today} $")
+
+# Schwebender Refresh Button
+if st.button("Refresh"):
+    st.rerun()

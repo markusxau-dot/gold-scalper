@@ -9,10 +9,8 @@ st.set_page_config(page_title="Gold Scalper Pro", page_icon="💰", layout="cent
 # --- HIGH-END UI DESIGN (CSS) ---
 st.markdown("""
     <style>
-    /* Sicherer Abstand nach oben (50px), damit auf Mobilgeräten nichts verschwindet */
     .block-container { padding-top: 50px !important; padding-bottom: 0.5rem !important; max-width: 550px !important; }
     
-    /* ANIMIERTER GOLD SCHRIFTZUG & MATTES ROT */
     .gold-title {
         font-size: 1.4rem !important;
         font-weight: 900;
@@ -30,11 +28,9 @@ st.markdown("""
     @keyframes shine { to { background-position: 200% center; } }
     .pro-red { color: #b91c1c !important; font-weight: 900; -webkit-text-fill-color: #b91c1c !important; }
     
-    /* Live-Schrift */
     .status-online { font-size: 1.2rem !important; font-weight: bold; text-align: center; color: #00ff88; margin-bottom: 0.6rem !important; text-shadow: 0 0 10px rgba(0,255,136,0.3); }
     .status-offline { font-size: 1.2rem !important; font-weight: bold; text-align: center; color: #ff3333; margin-bottom: 0.6rem !important; }
     
-    /* ERZWUNGENE HORIZONTALE ANORDNUNG (Einstieg, SL, TP) */
     .trade-container {
         display: flex;
         justify-content: space-between;
@@ -55,19 +51,16 @@ st.markdown("""
     .delta-plus { color: #ff3333; font-size: 0.72rem !important; font-weight: bold; }
     .delta-minus { color: #00ff88; font-size: 0.72rem !important; font-weight: bold; }
 
-    /* Signal Zone Styles */
     .signal-buy { background-color: #052e16; border: 2px solid #00ff88; color: #00ff88; padding: 8px !important; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 0.25rem !important; }
     .signal-sell { background-color: #2d0606; border: 2px solid #ff3333; color: #ff3333; padding: 8px !important; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 0.25rem !important; }
     .signal-wait { background-color: #3b2a06; border: 2px solid #ffaa00; color: #ffaa00; padding: 8px !important; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 0.25rem !important; }
     
-    /* Positionsgrößen-Box */
     .lot-box { background: linear-gradient(135deg, #1e293b, #0f172a); border-left: 5px solid #38bdf8; padding: 9px !important; border-radius: 4px; margin-bottom: 10px !important; }
 
-    /* REFRESH BUTTON POSITION */
     div.stButton > button {
         position: fixed !important;
-        right: 0px !important;
-        bottom: 80px !important;
+        right: 25px !important;
+        bottom: 135px !important;
         z-index: 999999 !important;
         border-radius: 50% !important;
         width: 54px !important;
@@ -83,10 +76,8 @@ st.markdown("""
     div.stButton > button p { display: none !important; }
     div.stButton > button::before { content: "↻" !important; font-size: 24px; font-weight: bold; }
     
-    /* ORIGINAL SIDEBARS VERSTECKT */
     [data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] { display: none !important; }
 
-    /* --- ERZWUNGENE ZENTRIERUNG FÜR DEN EINSTELLUNGS-BUTTON --- */
     div[data-testid="stExpander"] {
         display: block !important;
         margin: 0 auto !important;
@@ -99,7 +90,6 @@ st.markdown("""
         text-align: left !important;
     }
 
-    /* Der eigentliche Header-Button (Einstellungen) */
     div[data-testid="stExpander"] details summary {
         display: flex !important;
         justify-content: center !important; 
@@ -116,7 +106,6 @@ st.markdown("""
     div[data-testid="stExpander"] details summary svg { fill: #94a3b8 !important; color: #94a3b8 !important; }
     div[data-testid="stExpander"] details summary p { margin: 0 !important; font-weight: bold !important; color: #fff !important; font-size: 0.9rem !important; }
 
-    /* Das aufgeklappte Einstellungsfenster */
     div[data-testid="stExpander"] details div[data-testid="stExpanderDetails"] {
         background-color: #1e222b !important;
         border: 1px solid #3f444e !important;
@@ -169,15 +158,19 @@ if is_live:
 else:
     st.markdown(f"<div class='status-offline'>○ Markt offline (Demo-Modus) • {now}</div>", unsafe_allow_html=True)
 
-# --- SIGNAL ANZEIGEN ---
+# --- SIGNAL ANZEIGEN & DYNAMIK-BERECHNUNG ---
 is_bullish = current_price > avg_price
 abstand_absolut = abs(current_price - avg_price)
 ist_nah_am_durchschnitt = abstand_absolut <= 1.50
 
+# Wahrscheinlichkeits-Berechnung
 abstand_prozent = abstand_absolut / avg_price
 basis_chance = 60 if is_bullish else 40
 zusatz_chance = min(35, int(abstand_prozent * 5000))
 prob = min(95, basis_chance + zusatz_chance)
+
+# Dynamik-Berechnung (Trend-Stärke für Wartemodus)
+dynamik = min(99, int((abstand_absolut / 5) * 100)) if abstand_absolut > 0 else 0
 
 if ist_nah_am_durchschnitt:
     if is_bullish:
@@ -185,19 +178,19 @@ if ist_nah_am_durchschnitt:
     else:
         st.markdown(f"<div class='signal-sell'>💥 SELL SIGNAL AKTIV • STÄRKE {prob}%</div>", unsafe_allow_html=True)
 else:
-    st.markdown(f"<div class='signal-wait'>⏳ MARKT BEOBACHTEN • Trend ist {'Up' if is_bullish else 'Down'} (Warte auf Rücksetzer)</div>", unsafe_allow_html=True)
+    trend_str = "Up" if is_bullish else "Down"
+    st.markdown(f"<div class='signal-wait'>⏳ MARKT BEOBACHTEN • Trend {trend_str} (Dynamik: {dynamik}%) • Warte auf Rücksetzer</div>", unsafe_allow_html=True)
 
 
-# --- REIN MITTIG ZENTRIERTER BUTTON "EINSTELLUNGEN" MIT NEUEM CRV-SLIDER ---
+# --- EINSTELLUNGEN ---
 with st.expander("Einstellungen", expanded=False):
     sl_val = st.slider("Stop Loss ($)", 3.0, 10.0, 3.0, 0.5)
-    crv_val = st.slider("Chance-Risiko-Verhältnis (1:X)", 1.0, 5.0, 3.0, 0.5) # Neuer CRV Slider
+    crv_val = st.slider("Chance-Risiko-Verhältnis (1:X)", 1.0, 5.0, 3.0, 0.5)
     risk_val = st.number_input("Risiko ($)", 10, 1000, 50, 10)
 
 
-# --- BERECHNUNGEN (DYNAMISCH BASIEREND AUF CRV) ---
-tp_abstand = sl_val * crv_val  # Berechnet den TP-Abstand anhand des gewählten Sliders
-
+# --- BERECHNUNGEN ---
+tp_abstand = sl_val * crv_val
 if is_bullish:
     sl_price = current_price - sl_val
     tp_price = current_price + tp_abstand
@@ -211,7 +204,7 @@ else:
 
 lots = round(risk_val / (sl_val * 100), 2)
 
-# HORIZONTALE TRADE-BOXEN
+# TRADE-BOXEN
 trade_html = f"""
 <div class="trade-container">
     <div class="trade-box">
@@ -232,7 +225,6 @@ trade_html = f"""
 """
 st.markdown(trade_html, unsafe_allow_html=True)
 
-# Lot Anzeige
 st.markdown(f"""
 <div class='lot-box'>
     <span style='color: #38bdf8; font-weight: bold; font-size: 0.75rem;'>POSITIONSGRÖSSE</span><br>
@@ -240,30 +232,23 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# --- EXPANDER MIT DETAILS (STATISTIK JETZT OBEN) ---
+# --- DETAILS ---
 with st.expander("🔍 Details & Lot-Rechner einblenden"):
-    # 1. 24h-Statistiken ganz oben
     st.write("**Tagesstatistiken (Rollierende letzte 24 Std.):**")
     col_stat1, col_stat2 = st.columns(2)
     with col_stat1: st.metric(label="Höchstkurs (High)", value=f"{high_today} $")
     with col_stat2: st.metric(label="Tiefstkurs (Low)", value=f"{low_today} $")
-    
     st.markdown("---")
-    
-    # 2. Lot-Berechnung Info
     st.info(f"Um bei einem Verlust exakt **{risk_val} $** zu riskieren, musst du im MetaTrader 5 eine Positionsgröße von **{lots} Lots** eingeben.")
-    
     st.markdown("---")
-    
-    # 3. Trading-Logik & Bedingungen (Dynamisches CRV eingebaut)
     st.write("**Trading-Logik & Bedingungen:**")
     st.markdown(f"""
-    - **Trendbestimmung (SMA-20):** Der Kurs befindet sich aktuell *{'über (Bullish)' if is_bullish else 'unter (Bearish)'}* dem gleitenden Durchschnitt der letzten 20 Kerzen. Es werden nur Trades in Trendrichtung vorgeschlagen.
-    - **Einstiegs-Trigger:** Ein Signal schaltet erst auf aktiv (BUY/SELL), wenn der Abstand zwischen dem Live-Kurs und dem SMA-20 maximal **1.50 $** beträgt (Rücksetzer-Strategie).
-    - **Risiko-Management (CRV 1:{crv_val}):** Der Take Profit ist fest auf das **{crv_val}-Fache** des gewählten Stop Loss eingestellt, um ein mathematisch positives Gewinnverhältnis zu sichern.
-    - **Lot-Formel:** Berechnung basiert auf dem eingestellten Dollar-Risiko geteilt durch den Stop-Loss-Abstand (Multiplikator 100 pro Punkt im Gold-Future).
+    - **Trendbestimmung (SMA-20):** Der Kurs befindet sich aktuell *{'über (Bullish)' if is_bullish else 'unter (Bearish)'}* dem gleitenden Durchschnitt.
+    - **Trend-Dynamik:** Zeigt im Wartemodus an, wie stark der aktuelle Trend vom Durchschnitt wegzieht.
+    - **Einstiegs-Trigger:** Ein Signal schaltet auf aktiv, wenn der Abstand zum SMA-20 maximal **1.50 $** beträgt.
+    - **Risiko-Management (CRV 1:{crv_val}):** Der Take Profit ist fest auf das **{crv_val}-Fache** des Stop Loss eingestellt.
+    - **Lot-Formel:** Risiko ($) / (Stop Loss * 100).
     """)
 
-# Schwebender Refresh Button
 if st.button("Refresh"):
     st.rerun()

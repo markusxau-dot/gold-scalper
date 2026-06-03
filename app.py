@@ -9,7 +9,8 @@ st.set_page_config(page_title="Gold Scalper Pro", page_icon="💰", layout="cent
 # --- HIGH-END UI DESIGN (CSS) ---
 st.markdown("""
     <style>
-    .block-container { padding-top: 1rem !important; padding-bottom: 1rem; max-width: 550px !important; }
+    /* Verhindert, dass die Schrift oben aus dem Bildschirm verschwindet */
+    .block-container { padding-top: 3.5rem !important; padding-bottom: 1rem; max-width: 550px !important; }
     
     /* ANIMIERTER GOLD SCHRIFTZUG & MATTES ROT */
     .gold-title {
@@ -54,9 +55,9 @@ st.markdown("""
     .delta-minus { color: #00ff88; font-size: 0.75rem; font-weight: bold; }
 
     /* Signal Zone Styles */
-    .signal-buy { background-color: #052e16; border: 2px solid #00ff88; color: #00ff88; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 1rem; }
-    .signal-sell { background-color: #2d0606; border: 2px solid #ff3333; color: #ff3333; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 1rem; }
-    .signal-wait { background-color: #3b2a06; border: 2px solid #ffaa00; color: #ffaa00; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 1rem; }
+    .signal-buy { background-color: #052e16; border: 2px solid #00ff88; color: #00ff88; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 0.5rem; }
+    .signal-sell { background-color: #2d0606; border: 2px solid #ff3333; color: #ff3333; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 0.5rem; }
+    .signal-wait { background-color: #3b2a06; border: 2px solid #ffaa00; color: #ffaa00; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 0.5rem; }
     
     .lot-box { background: linear-gradient(135deg, #1e293b, #0f172a); border-left: 5px solid #38bdf8; padding: 12px; border-radius: 4px; margin-bottom: 15px; }
 
@@ -80,23 +81,22 @@ st.markdown("""
     div.stButton > button p { display: none !important; }
     div.stButton > button::before { content: "↻" !important; font-size: 24px; font-weight: bold; }
     
-    /* ORIGINAL SIDEBARS AUSBLENDEN */
+    /* ORIGINAL SIDEBARS VERSTECKT */
     [data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] { display: none !important; }
 
     /* --- EXPANDER RECHTS AUSRICHTEN & PFEIL NACH LINKS --- */
-    
-    /* Gesamten Block rechtsbündig machen */
     div[data-testid="stExpander"] {
         display: flex !important;
         flex-direction: column !important;
         align-items: flex-end !important;
         border: none !important;
         background: transparent !important;
+        margin-bottom: 15px !important;
     }
 
     /* Der Header-Button */
     div[data-testid="stExpander"] details summary {
-        flex-direction: row-reverse !important; /* Spiegelt Icon und Text */
+        flex-direction: row-reverse !important;
         justify-content: flex-end !important;
         gap: 12px !important;
         background-color: #1e222b !important;
@@ -106,12 +106,10 @@ st.markdown("""
         width: fit-content !important;
     }
 
-    /* Standard-Pfeil von Streamlit verstecken */
-    div[data-testid="stExpander"] details summary svg {
-        display: none !important;
-    }
+    /* Standard-Pfeil ausblenden */
+    div[data-testid="stExpander"] details summary svg { display: none !important; }
 
-    /* Einen eigenen, echten nach links zeigenden Pfeil einbauen */
+    /* Eigenen Pfeil nach links einbauen */
     div[data-testid="stExpander"] details summary::before {
         content: "◀" !important;
         font-size: 0.75rem !important;
@@ -120,20 +118,19 @@ st.markdown("""
         display: inline-block !important;
     }
 
-    /* Wenn geöffnet, zeigt der Pfeil nach unten */
+    /* Drehung bei geöffnetem Zustand */
     div[data-testid="stExpander"] details[open] summary::before {
         transform: rotate(-90deg) !important;
         color: #fff !important;
     }
 
-    /* SILBER-GLÄNZENDES FEUER IM TEXT ERZEUGEN */
+    /* Silberner Flammen-Effekt via CSS */
     div[data-testid="stExpander"] details summary p {
         display: flex !important;
         align-items: center !important;
         gap: 6px !important;
+        margin: 0 !important;
     }
-    
-    /* Wir hängen das silberne Feuer per CSS-Injektion hinten an das Wort 'Einstellungen' an */
     div[data-testid="stExpander"] details summary p::after {
         content: "🔥" !important;
         background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 45%, #b8b8b8 70%, #8e8e8e 100%) !important;
@@ -143,7 +140,7 @@ st.markdown("""
         font-weight: bold !important;
     }
 
-    /* Das Einstellungsfenster klappt nach links auf */
+    /* Das aufgeklappte Einstellungsfenster */
     div[data-testid="stExpander"] details div[data-testid="stExpanderDetails"] {
         background-color: #1e222b !important;
         border: 1px solid #3f444e !important;
@@ -154,12 +151,6 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
-
-# --- RECHTS AUSGERECHTES DROPDOWN-MENÜ ---
-# Reiner Text – Das "🔥" und das Silber-Styling werden jetzt fehlerfrei über das CSS oben injiziert!
-with st.expander("Einstellungen", expanded=False):
-    sl_val = st.slider("Stop Loss ($)", 3.0, 10.0, 3.0, 0.5)
-    risk_val = st.number_input("Risiko (€)", 10, 1000, 50, 10)
 
 # --- DATENABRUF UND LOGIK ---
 class GoldLogic:
@@ -202,7 +193,7 @@ if is_live:
 else:
     st.markdown(f"<div class='status-offline'>○ Markt offline (Demo-Modus) • {now}</div>", unsafe_allow_html=True)
 
-# --- INTELLIGENTE SIGNAL-PRÜFUNG ---
+# --- SIGNAL ANZEIGEN (DAS ORANGENE/GRÜNE/ROTE FENSTER) ---
 is_bullish = current_price > avg_price
 abstand_absolut = abs(current_price - avg_price)
 ist_nah_am_durchschnitt = abstand_absolut <= 1.50
@@ -212,6 +203,22 @@ basis_chance = 60 if is_bullish else 40
 zusatz_chance = min(35, int(abstand_prozent * 5000))
 prob = min(95, basis_chance + zusatz_chance)
 
+if ist_nah_am_durchschnitt:
+    if is_bullish:
+        st.markdown(f"<div class='signal-buy'>🚀 BUY SIGNAL AKTIV • STÄRKE {prob}%</div>", unsafe_allow_html=True)
+    else:
+        st.markdown(f"<div class='signal-sell'>💥 SELL SIGNAL AKTIV • STÄRKE {prob}%</div>", unsafe_allow_html=True)
+else:
+    st.markdown(f"<div class='signal-wait'>⏳ MARKT BEOBACHTEN • Trend ist {'Up' if is_bullish else 'Down'} (Warte auf Rücksetzer)</div>", unsafe_allow_html=True)
+
+
+# --- HIERMIT JETZT UNTER DAS SIGNAL-FENSTER GEPLATZIERT ---
+with st.expander("Einstellungen", expanded=False):
+    sl_val = st.slider("Stop Loss ($)", 3.0, 10.0, 3.0, 0.5)
+    risk_val = st.number_input("Risiko (€)", 10, 1000, 50, 10)
+
+
+# --- WETERER VERLAUF (BERECHNUNGEN & AUSGABEN) ---
 if is_bullish:
     sl_price = current_price - sl_val
     tp_price = current_price + (sl_val * 3)
@@ -222,15 +229,6 @@ else:
     tp_price = current_price - (sl_val * 3)
     prefix_sl = "+"
     prefix_tp = "-"
-
-# SIGNAL ANZEIGEN
-if ist_nah_am_durchschnitt:
-    if is_bullish:
-        st.markdown(f"<div class='signal-buy'>🚀 BUY SIGNAL AKTIV • STÄRKE {prob}%</div>", unsafe_allow_html=True)
-    else:
-        st.markdown(f"<div class='signal-sell'>💥 SELL SIGNAL AKTIV • STÄRKE {prob}%</div>", unsafe_allow_html=True)
-else:
-    st.markdown(f"<div class='signal-wait'>⏳ MARKT BEOBACHTEN • Trend ist {'Up' if is_bullish else 'Down'} (Warte auf Rücksetzer)</div>", unsafe_allow_html=True)
 
 lots = round(risk_val / (sl_val * 100), 2)
 

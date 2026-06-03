@@ -83,64 +83,81 @@ st.markdown("""
     /* ORIGINAL SIDEBARS AUSBLENDEN */
     [data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] { display: none !important; }
 
-    /* --- DROPDOWN RECHTS ANORDNEN & PFEIL NACH LINKS --- */
+    /* --- EXPANDER RECHTS AUSRICHTEN & PFEIL NACH LINKS --- */
     
-    /* Das umschließende Container-Element des Expanders */
+    /* Gesamten Block rechtsbündig machen */
     div[data-testid="stExpander"] {
         display: flex !important;
         flex-direction: column !important;
-        align-items: flex-end !important; /* Richtet den Block rechts aus */
+        align-items: flex-end !important;
         border: none !important;
         background: transparent !important;
     }
 
-    /* Der Header des Dropdowns */
+    /* Der Header-Button */
     div[data-testid="stExpander"] details summary {
-        flex-direction: row-reverse !important; /* Spiegelt Pfeil und Text */
+        flex-direction: row-reverse !important; /* Spiegelt Icon und Text */
         justify-content: flex-end !important;
-        gap: 15px !important;
+        gap: 12px !important;
         background-color: #1e222b !important;
         border: 1px solid #3f444e !important;
         border-radius: 8px !important;
-        padding: 10px 15px !important;
-        width: fit-content !important; /* Nur so breit wie der Inhalt */
+        padding: 8px 14px !important;
+        width: fit-content !important;
     }
 
-    /* Pfeil-Icon umdrehen, sodass es standardmäßig nach links zeigt */
+    /* Standard-Pfeil von Streamlit verstecken */
     div[data-testid="stExpander"] details summary svg {
-        transform: rotate(90deg) !important; 
-        transition: transform 0.2s ease-in-out !important;
+        display: none !important;
     }
 
-    /* Wenn das Menü geöffnet ist, dreht sich der Pfeil nach unten/oben */
-    div[data-testid="stExpander"] details[open] summary svg {
-        transform: rotate(0deg) !important;
+    /* Einen eigenen, echten nach links zeigenden Pfeil einbauen */
+    div[data-testid="stExpander"] details summary::before {
+        content: "◀" !important;
+        font-size: 0.75rem !important;
+        color: #94a3b8 !important;
+        transition: transform 0.2s ease !important;
+        display: inline-block !important;
     }
 
-    /* Der aufklappende Inhalt (nach links ausgerichtet) */
+    /* Wenn geöffnet, zeigt der Pfeil nach unten */
+    div[data-testid="stExpander"] details[open] summary::before {
+        transform: rotate(-90deg) !important;
+        color: #fff !important;
+    }
+
+    /* SILBER-GLÄNZENDES FEUER IM TEXT ERZEUGEN */
+    div[data-testid="stExpander"] details summary p {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+    }
+    
+    /* Wir hängen das silberne Feuer per CSS-Injektion hinten an das Wort 'Einstellungen' an */
+    div[data-testid="stExpander"] details summary p::after {
+        content: "🔥" !important;
+        background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 45%, #b8b8b8 70%, #8e8e8e 100%) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        filter: drop-shadow(0px 0px 3px rgba(255,255,255,0.5)) !important;
+        font-weight: bold !important;
+    }
+
+    /* Das Einstellungsfenster klappt nach links auf */
     div[data-testid="stExpander"] details div[data-testid="stExpanderDetails"] {
         background-color: #1e222b !important;
         border: 1px solid #3f444e !important;
         border-radius: 8px !important;
         padding: 15px !important;
-        width: 280px !important; /* Fixe Breite wie eine kleine Sidebar */
+        width: 280px !important;
         margin-top: 5px !important;
-    }
-
-    /* SILBER GLÄNZENDES FEUER ICON */
-    .silver-flame {
-        font-weight: bold;
-        background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 45%, #b8b8b8 70%, #8e8e8e 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        filter: drop-shadow(0px 0px 4px rgba(255,255,255,0.6));
     }
     </style>
 """, unsafe_allow_html=True)
 
 # --- RECHTS AUSGERECHTES DROPDOWN-MENÜ ---
-# Wir nutzen HTML im Titel für das spezielle silberne Feuer-Icon
-with st.expander("Einstellungen <span class='silver-flame'>🔥</span>", expanded=False):
+# Reiner Text – Das "🔥" und das Silber-Styling werden jetzt fehlerfrei über das CSS oben injiziert!
+with st.expander("Einstellungen", expanded=False):
     sl_val = st.slider("Stop Loss ($)", 3.0, 10.0, 3.0, 0.5)
     risk_val = st.number_input("Risiko (€)", 10, 1000, 50, 10)
 

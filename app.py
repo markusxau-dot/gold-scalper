@@ -28,7 +28,7 @@ st.markdown("""
         background-color: #1e222b;
         border: 1px solid #3f444e;
         border-radius: 8px;
-        padding: 12px 5px; /* Etwas mehr vertikaler Platz */
+        padding: 12px 5px;
         text-align: center;
     }
     /* DEUTLICH GRÖSSERE SCHRIFT FÜR DIE LABEL */
@@ -147,33 +147,35 @@ else:
 # Positionsgröße berechnen
 lots = round(risk_val / (sl_val * 100), 2)
 
-# HORIZONTALE TRADE-BOXEN (Mit vergrößerten CSS-Klassen)
-st.markdown(f"""
-    <div class="trade-container">
-        <div class="trade-box">
-            <span class="trade-label">Einstieg</span>
-            <span class="trade-value">{current_price}</span>
-        </div>
-        <div class="trade-box" style="border-color: #7f1d1d;">
-            <span class="trade-label">Stop Loss</span>
-            <span class="trade-value">{round(sl_price, 2)}</span>
-            <span class="delta-plus">{"-" if is_bullish else "+"}{sl_val}$</span>
-        </div>
-        <div class="trade-box" style="border-color: #064e3b;">
-            <span class="trade-label">Take Profit</span>
-            <span class="trade-value">{round(tp_price, 2)}</span>
-            <span class="delta-minus">{"+" if is_bullish else "-"}{sl_val*3}$</span>
-        </div>
+# HORIZONTALE TRADE-BOXEN
+trade_html = f"""
+<div class="trade-container">
+    <div class="trade-box">
+        <span class="trade-label">Einstieg</span>
+        <span class="trade-value">{current_price}</span>
     </div>
-""", unsafe_allow_html=True)
+    <div class="trade-box" style="border-color: #7f1d1d;">
+        <span class="trade-label">Stop Loss</span>
+        <span class="trade-value">{round(sl_price, 2)}</span>
+        <span class="delta-plus">{"-" if is_bullish else "+"}{sl_val}$</span>
+    </div>
+    <div class="trade-box" style="border-color: #064e3b;">
+        <span class="trade-label">Take Profit</span>
+        <span class="trade-value">{round(tp_price, 2)}</span>
+        <span class="delta-minus">{"+" if is_bullish else "-"}{sl_val*3}$</span>
+    </div>
+</div>
+"""
+st.markdown(trade_html, unsafe_allow_html=True)
 
 # Hauptanzeige Lots
-st.markdown(f"""
-    <div class='lot-box'>
-        <span style='color: #38bdf8; font-weight: bold; font-size: 0.8rem;'>POSITIONSGRÖSSE</span><br>
-        <span style='font-size: 1.5rem; font-weight: bold; color: #fff;'>{lots} Lots</span>
-    </div>
-""", unsafe_allow_html=True)
+lot_html = f"""
+<div class='lot-box'>
+    <span style='color: #38bdf8; font-weight: bold; font-size: 0.8rem;'>POSITIONSGRÖSSE</span><br>
+    <span style='font-size: 1.5rem; font-weight: bold; color: #fff;'>{lots} Lots</span>
+</div>
+"""
+st.markdown(lot_html, unsafe_allow_html=True)
 
 # --- ERWEITERTES AUSKLAPPBARES FENSTER FÜR DETAILS (EXPANDER) ---
 with st.expander("🔍 Details & Lot-Rechner einblenden"):
@@ -184,3 +186,13 @@ with st.expander("🔍 Details & Lot-Rechner einblenden"):
     - **Trendrichtung:** Kurs befindet sich aktuell *{'über' if is_bullish else 'unter'}* dem gleitenden Durchschnitt (SMA-20).
     - **Einstiegs-Bedingung:** Ein Signal wird erst aktiv, wenn der Live-Kurs maximal **1.50 $** an den SMA heranreicht (Schutz vor Einstiegen in überteuerte Märkte).
     - **Einstiegspreis:** Nutzt bei Signal-Aktivierung den aktuellen Sekunden-Kurs bei Klick auf Refresh.
+    """)
+    st.markdown("---")
+    st.write("**Tagesstatistiken (Rollierend):**")
+    col_stat1, col_stat2 = st.columns(2)
+    with col_stat1: st.metric(label="Höchstkurs (High)", value=f"{high_today} $")
+    with col_stat2: st.metric(label="Tiefstkurs (Low)", value=f"{low_today} $")
+
+# Schwebender Refresh Button
+if st.button("Refresh"):
+    st.rerun()

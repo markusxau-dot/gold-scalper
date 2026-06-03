@@ -9,7 +9,7 @@ st.set_page_config(page_title="Gold Scalper Pro", page_icon="💰", layout="cent
 # --- HIGH-END UI DESIGN (CSS) ---
 st.markdown("""
     <style>
-    .block-container { padding-top: 2rem !important; padding-bottom: 1rem; max-width: 550px !important; }
+    .block-container { padding-top: 1rem !important; padding-bottom: 1rem; max-width: 550px !important; }
     
     /* ANIMIERTER GOLD SCHRIFTZUG & MATTES ROT */
     .gold-title {
@@ -80,45 +80,15 @@ st.markdown("""
     div.stButton > button p { display: none !important; }
     div.stButton > button::before { content: "↻" !important; font-size: 24px; font-weight: bold; }
     
-    /* --- SIDEBAR PFEIL NACH RECHTS & SILBER OPTIK --- */
-    
-    /* Pfeil oben links eliminieren */
-    [data-testid="stSidebarCollapsedControl"] {
-        position: fixed !important;
-        left: auto !important;
-        right: 15px !important;
-        top: 15px !important;
-        z-index: 1000000 !important;
-        background: linear-gradient(145deg, #ffffff, #8a8a8a) !important; /* Silber Metallic */
-        border: 2px solid #ffffff !important;
-        border-radius: 8px !important;
-        box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.5) !important;
-        width: 42px !important;
-        height: 42px !important;
-    }
-    
-    /* Pfeil-Icon im Inneren nach Rechts spiegeln und abdunkeln */
-    [data-testid="stSidebarCollapsedControl"] svg {
-        transform: rotate(180deg) !important;
-        fill: #1e222b !important;
-        color: #1e222b !important;
-    }
-
-    /* Sidebar selbst rechts fixieren */
-    .stApp { flex-direction: row-reverse !important; }
-    section[data-testid="stSidebar"] {
-        left: auto !important;
-        right: 0 !important;
-        background-color: #2d333f !important;
-        border-left: 2px solid #3f444e !important;
+    /* URSPRÜNGLICHE STREAMLIT SIDEBAR KOMPLETT AUSBLENDEN */
+    [data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] {
+        display: none !important;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# --- SIDEBAR (RECHTS) ---
-with st.sidebar:
-    st.markdown("<h3 style='color: #fff; text-align: center;'>⚙️ Einstellungen</h3>", unsafe_allow_html=True)
-    st.markdown("---")
+# --- NEUES DROPDOWN-EINSTELLUNGSMENÜ (STREAMLIT-SIDEBAR ERSATZ) ---
+with st.expander("⚙️ Einstellungen (Stop Loss & Risiko)"):
     sl_val = st.slider("Stop Loss ($)", 3.0, 10.0, 3.0, 0.5)
     risk_val = st.number_input("Risiko (€)", 10, 1000, 50, 10)
 
@@ -224,7 +194,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# --- EXPANDER ---
+# --- EXPANDER MIT DETAILS ---
 with st.expander("🔍 Details & Lot-Rechner einblenden"):
     st.info(f"Um bei einem Verlust exakt **{risk_val} €** zu riskieren, musst du im MetaTrader 5 eine Positionsgröße von **{lots} Lots** eingeben.")
     st.markdown("---")

@@ -1,15 +1,43 @@
 import streamlit as st
 import yfinance as yf
 import numpy as np
-import pandas as pd
 
-# Seiteneinstellungen für das Handy optimieren
-st.set_page_config(page_title="Gold Scalping Tool", page_icon="💰", layout="centered")
+# Seiteneinstellungen für maximale Kompaktheit
+st.set_page_config(page_title="Gold Scalper", page_icon="💰", layout="centered")
 
-st.title("💰 Gold Scalping Analyzer")
-st.write("Lokale Echtzeitanalyse für XAU-USD (Gold)")
+# CSS für Schatten, fette Slider, definierte Kanten und extreme Kompaktheit
+st.markdown("""
+    <style>
+    /* Abstände global verringern */
+    .block-container { padding-top: 1rem; padding-bottom: 1rem; }
+    h1 { font-size: 1.8rem !important; margin-bottom: 0.5rem; }
+    
+    /* Boxen mit Schatten und definierten Kanten */
+    div[data-testid="stMetricValue"] {
+        font-size: 1.4rem !important;
+        font-weight: bold;
+    }
+    div[data-testid="metric-container"] {
+        background-color: #1e222b;
+        padding: 8px 12px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        border: 1px solid #2d3139;
+    }
+    
+    /* Fetterer, definierter Slider */
+    .stSlider [data-baseweb="slider"] {
+        height: 12px;
+    }
+    .stSlider [data-testid="stTickBar"] {
+        font-weight: bold;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-# Logik-Klasse für die Berechnung
+st.title("💰 Gold Scalper Pro")
+
+# Logik-Klasse mit deinen neuen starren Grenzwerten (max 3$ SL / 9$ TP)
 class GoldScalpingLogic:
     def __init__(self, symbol="GC=F"):
         self.symbol = symbol
@@ -17,72 +45,67 @@ class GoldScalpingLogic:
 
     def fetch_data(self):
         try:
-            # Holt die neuesten 15-Minuten-Daten der letzten 5 Tage
-            self.data = yf.download(tickers=self.symbol, period="5d", interval="15m", progress=False)
+            self.data = yf.download(tickers=self.symbol, period="3d", interval="15m", progress=False)
             return True
         except:
             return False
 
-    def calculate_metrics(self, crv_ratio):
+    def calculate_metrics(self, crv_ratio, risk_amount):
         if self.data is None or len(self.data) < 20:
             return 50, 0, 0, 0
         
-        # Daten glätten
         close_prices = self.data['Close'].values.flatten()
         current_price = float(close_prices[-1])
         avg_price = float(np.mean(close_prices[-20:]))
         
-        # Wahrscheinlichkeits-Heuristik
-        if current_price > avg_price:
-            prob = 72
-        else:
-            prob = 42
+        # Signal-Logik
+        prob = 75 if current_price > avg_price else 45
             
-        # SL und TP berechnen (0.5% Risiko vom aktuellen Kurs)
-        sl_dist = current_price * 0.005
-        sl = current_price - sl_dist
-        tp = current_price + (sl_dist * crv_ratio)
+        # NEU: Strukturierte Punkte-Begrenzung basierend auf deinem Wunsch
+        # Bei CRV 3 -> SL = 3, TP = 9. Bei CRV 2 -> SL = 3, TP = 6.
+        sl_points = float(risk_amount)
+        tp_points = sl_points * float(crv_ratio)
+        
+        sl = current_price - sl_points
+        tp = current_price + tp_points
         
         return prob, round(current_price, 2), round(sl, 2), round(tp, 2)
 
 logic = GoldScalpingLogic()
 
-# Button zum manuellen Aktualisieren
-if st.button("🔄 Daten aktualisieren"):
-    st.rerun()
-
 if logic.fetch_data():
-    # Slider für das Chance-Risiko-Verhältnis (CRV)
-    crv = st.slider("Chance-Risiko-Verhältnis (CRV)", min_value=2, max_value=4, value=2, step=1)
+    # Zwei Slider nebeneinander für maximale Platzersparnis
+    col_sl1, col_sl2 = st.columns(2)
+    with col_sl1:
+        crv = st.slider("CRV Verhältnis", min_value=2, max_value=4, value=3, step=1)
+    with col_sl2:
+        # Hier ist dein Limit: Maximal 3 Dollar Stop Loss
+        risk_dist = st.slider("Max SL Abstand ($)", min_value=1.0, max_value=3.0, value=3.0, step=0.5)
     
-    # Metriken berechnen
-    prob, entry, sl, tp = logic.calculate_metrics(crv)
+    prob, entry, sl, tp = logic.calculate_metrics(crv, risk_dist)
     
-    st.markdown("---")
-    
-    # Farbige Anzeige der Wahrscheinlichkeit
+    # Kompakter Signal-Kasten
     if prob > 60:
-        st.success(f"### Erfolgswahrscheinlichkeit: {prob}% (Starkes Signal)")
+        st.success(f"**Signal: STARK ({prob}%)**")
     else:
-        st.warning(f"### Erfolgswahrscheinlichkeit: {prob}% (Neutral/Schwach)")
+        st.warning(f"**Signal: NEUTRAL ({prob}%)**")
         
-    # Preis-Boxen anzeigen
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric(label="Einstieg (USD)", value=f"{entry}")
-    with col2:
-        st.metric(label="Stop Loss", value=f"{sl}")
-    with col3:
-        st.metric(label="Take Profit", value=f"{tp}")
+    # Extrem kompakte Preis-Kacheln NEBENEINANDER (Handy-optimiert)
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.metric(label="EINSTIEG", value=f"{entry}")
+    with c2:
+        st.metric(label="STOP LOSS", value=f"{sl}", delta=f"-{risk_dist}$", delta_color="inverse")
+    with col_sl2 if not c3 else c3: # Fix für Spaltenbündelung
+        st.metric(label="TAKE PROFIT", value=f"{tp}", delta=f"+{risk_dist*crv}$")
         
-    st.markdown("---")
+    # Winziger Refresh-Button ganz unten, um Platz zu sparen
+    st.button("🔄 Kurse aktualisieren", use_container_width=True)
     
-    # Fake MT5 Sektion (wie im Kivy Prototyp)
-    with st.expander("🔐 MetaTrader 5 Verbindung (Optional)"):
-        server = st.text_input("MT5 Server")
-        login = st.text_input("Kontonummer / Login")
-        password = st.text_input("Passwort", type="password")
-        if st.button("Login & Trade"):
-            st.info("MT5-Schnittstelle im Prototyp inaktiv. Daten werden nur lokal berechnet.")
+    # MetaTrader Bereich extrem flach halten
+    with st.expander("🔐 MT5 Verbindung"):
+        st.text_input("Server", key="srv")
+        st.text_input("Login", key="log")
+        st.text_input("Passwort", type="password", key="pwd")
 else:
-    st.error("Fehler beim Laden der Live-Marktdaten von Yahoo Finance. Bitte lade die Seite neu.")
+    st.error("Marktdaten temporär nicht erreichbar.")

@@ -96,7 +96,7 @@ st.markdown("""
     div[data-testid="stExpander"] > details {
         display: inline-block !important;
         margin: 0 auto !important;
-        text-align: left !important; /* Inhalt im Dropdown bleibt linksbündig sauber */
+        text-align: left !important;
     }
 
     /* Der eigentliche Header-Button (Einstellungen) */
@@ -110,7 +110,7 @@ st.markdown("""
         border-radius: 8px !important;
         padding: 5px 14px !important;
         width: fit-content !important;
-        margin: 0 auto !important; /* Garantiert die Zentrierung am Bildschirm */
+        margin: 0 auto !important;
         height: auto !important;
     }
     div[data-testid="stExpander"] details summary svg { fill: #94a3b8 !important; color: #94a3b8 !important; }
@@ -123,7 +123,7 @@ st.markdown("""
         border-radius: 8px !important;
         padding: 12px !important;
         width: 280px !important;
-        margin: 4px auto 0 auto !important; /* Zentriert auch das aufgeklappte Fenster */
+        margin: 4px auto 0 auto !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -191,7 +191,7 @@ else:
 # --- REIN MITTIG ZENTRIERTER BUTTON "EINSTELLUNGEN" ---
 with st.expander("Einstellungen", expanded=False):
     sl_val = st.slider("Stop Loss ($)", 3.0, 10.0, 3.0, 0.5)
-    risk_val = st.number_input("Risiko (€)", 10, 1000, 50, 10)
+    risk_val = st.number_input("Risiko ($)", 10, 1000, 50, 10)  # Euro in Dollar geändert
 
 
 # --- BERECHNUNGEN ---
@@ -239,7 +239,7 @@ st.markdown(f"""
 
 # --- EXPANDER MIT DETAILS (STATISTIK JETZT OBEN) ---
 with st.expander("🔍 Details & Lot-Rechner einblenden"):
-    # 1. 24h-Statistiken nach ganz oben verschoben
+    # 1. 24h-Statistiken ganz oben
     st.write("**Tagesstatistiken (Rollierende letzte 24 Std.):**")
     col_stat1, col_stat2 = st.columns(2)
     with col_stat1: st.metric(label="Höchstkurs (High)", value=f"{high_today} $")
@@ -247,18 +247,18 @@ with st.expander("🔍 Details & Lot-Rechner einblenden"):
     
     st.markdown("---")
     
-    # 2. Lot-Berechnung Info
-    st.info(f"Um bei einem Verlust exakt **{risk_val} €** zu riskieren, musst du im MetaTrader 5 eine Positionsgröße von **{lots} Lots** eingeben.")
+    # 2. Lot-Berechnung Info - Euro in Dollar geändert
+    st.info(f"Um bei einem Verlust exakt **{risk_val} $** zu riskieren, musst du im MetaTrader 5 eine Positionsgröße von **{lots} Lots** eingeben.")
     
     st.markdown("---")
     
-    # 3. Vervollständigte Trading-Logik & Bedingungen
+    # 3. Trading-Logik & Bedingungen - Euro in Dollar geändert
     st.write("**Trading-Logik & Bedingungen:**")
     st.markdown(f"""
     - **Trendbestimmung (SMA-20):** Der Kurs befindet sich aktuell *{'über (Bullish)' if is_bullish else 'unter (Bearish)'}* dem gleitenden Durchschnitt der letzten 20 Kerzen. Es werden nur Trades in Trendrichtung vorgeschlagen.
     - **Einstiegs-Trigger:** Ein Signal schaltet erst auf aktiv (BUY/SELL), wenn der Abstand zwischen dem Live-Kurs und dem SMA-20 maximal **1.50 $** beträgt (Rücksetzer-Strategie).
     - **Risiko-Management (CRV 1:3):** Der Take Profit ist fest auf das Dreifache des gewählten Stop Loss eingestellt, um ein mathematisch positives Gewinnverhältnis zu sichern.
-    - **Lot-Formel:** Berechnung basiert auf dem eingestellten Euro-Risiko geteilt durch den Stop-Loss-Abstand (Multiplikator 100 pro Punkt im Gold-Future).
+    - **Lot-Formel:** Berechnung basiert auf dem eingestellten Dollar-Risiko geteilt durch den Stop-Loss-Abstand (Multiplikator 100 pro Punkt im Gold-Future).
     """)
 
 # Schwebender Refresh Button

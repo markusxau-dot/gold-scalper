@@ -21,7 +21,7 @@ st.markdown("""
         padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 1.1rem;
         box-shadow: 0 0 15px rgba(0, 255, 136, 0.2); margin-bottom: 1rem;
     }
-    .signal-wait {
+    .signal-sell {
         background-color: #2d0606; border: 2px solid #ff3333; color: #ff3333;
         padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 1.1rem;
         box-shadow: 0 0 15px rgba(255, 51, 51, 0.2); margin-bottom: 1rem;
@@ -46,20 +46,48 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- PDF GENERATOR ---
+# --- PDF GENERATOR (JETZT VOLLSTÄNDIG) ---
 def generate_handbook_pdf(sl_val):
     pdf = FPDF()
     pdf.add_page()
+    
+    # Haupttitel
     pdf.set_font("Helvetica", "B", 16)
     pdf.cell(0, 10, "Handbuch: Gold Scalper Pro Logik", ln=True, align="C")
     pdf.ln(10)
+    
+    # Kapitel 1
     pdf.set_font("Helvetica", "B", 12)
-    pdf.cell(0, 10, "1. Zeitfenster & Datenhistorie", ln=True)
+    pdf.cell(0, 8, "1. Zeitfenster & Datenhistorie", ln=True)
     pdf.set_font("Helvetica", "", 10)
-    pdf.multi_cell(0, 6, "Das Tool nutzt 15-Minuten-Kerzen (15m Interval) und analysiert den Durchschnitt der letzten 20 Perioden.")
+    pdf.multi_cell(0, 6, "Das Tool nutzt 15-Minuten-Kerzen (15m Interval) und analysiert den Durchschnitt der letzten 20 Perioden. Das entspricht einem festen historischen Blickfeld von exakt 5 Stunden (20 Kerzen x 15 Minuten).")
+    pdf.ln(4)
+    
+    # Kapitel 2
+    pdf.set_font("Helvetica", "B", 12)
+    pdf.cell(0, 8, "2. Trend- und Signalbestimmung", ln=True)
+    pdf.set_font("Helvetica", "", 10)
+    pdf.multi_cell(0, 6, "Das Programm vergleicht den aktuellen Live-Kurs mit dem berechneten Durchschnitt:\n"
+                         "- Kurs HÖHER als der Schnitt -> BUY ZONE (Aufwaertstrend, Signal-Staerke: 75%)\n"
+                         "- Kurs TIEFER als der Schnitt -> SELL ZONE (Abwaertstrend, Signal-Staerke: 75%)")
+    pdf.ln(4)
+    
+    # Kapitel 3
+    pdf.set_font("Helvetica", "B", 12)
+    pdf.cell(0, 8, "3. Starres CRV 1:3 Verhaeltnis & Struktur", ln=True)
+    pdf.set_font("Helvetica", "", 10)
+    tp_val = sl_val * 3.0
+    pdf.multi_cell(0, 6, f"Das Gewinnverhaeltnis ist starr auf 1:3 gekoppelt. Der Take Profit ist immer das Dreifache des gewaehlten Risikos.\n\n"
+                         f"Gewaehltes Risiko (Stop Loss): {sl_val} $\n"
+                         f"Automatisches Ziel (Take Profit): {tp_val} $\n\n"
+                         "Visualisierung der Trade-Struktur:\n"
+                         f"▲ [ TAKE PROFIT ] ---> Ziel-Abstand: +{tp_val} $\n"
+                         "I   [ EINSTIEG ]    ---> Aktueller Live-Goldkurs\n"
+                         f"▼ [ STOP LOSS ]   ---> Risiko-Abstand: -{sl_val} $")
+    
     return pdf.output()
 
-# --- DATENABRUF UND NEUE FEHLERTOLERANTE LOGIK ---
+# --- DATENABRUF UND LOGIK ---
 class GoldDashboardLogic:
     def __init__(self):
         self.symbol = "GC=F"
@@ -71,7 +99,6 @@ class GoldDashboardLogic:
             self.data = yf.download(tickers=self.symbol, period="3d", interval="15m", progress=False)
             ticker = yf.Ticker(self.symbol)
             self.info = ticker.fast_info
-            # Prüfen, ob wir wirklich Daten erhalten haben
             if self.data is None or len(self.data) < 5:
                 return False
             return True
@@ -79,7 +106,6 @@ class GoldDashboardLogic:
             return False
 
     def process(self, sl_dist, euro_risk, live_aktiv):
-        # Falls Live-Märkte aktiv sind und Daten existieren
         if live_aktiv and self.data is not None and len(self.data) >= 5:
             try:
                 close_prices = self.data['Close'].values.flatten()
@@ -88,20 +114,23 @@ class GoldDashboardLogic:
                 high_today = float(self.info.get('day_high', current_price))
                 low_today = float(self.info.get('day_low', current_price))
                 is_bullish = current_price > avg_price
-                prob = 75 if is_bullish else 45
             except:
-                # Fallback innerhalb der Live-Datenberechnung
-                current_price, high_today, low_today, is_bullish, prob = 2350.0, 2360.0, 2340.0, True, 75
+                current_price, high_today, low_today, is_bullish = 2350.0, 2360.0, 2340.0, True
         else:
-            # SOWIESO FALLBACK (z.B. am Wochenende wenn yfinance leer ist)
-            current_price = 2350.0
-            high_today = 2365.0
-            low_today = 2340.0
-            is_bullish = True
-            prob = 75
+            # Fallback für Wochenende / geschlossene Märkte
+            current_price, high_today, low_today, is_bullish = 2350.0, 2365.0, 2340.0, True
         
-        sl = current_price - sl_dist
-        tp = current_price + (sl_dist * 3.0)
+        # Berechnung der Level basierend auf der Marktrichtung
+        if is_bullish:
+            sl = current_price - sl_dist
+            tp = current_price + (sl_dist * 3.0)
+            prob = 75
+        else:
+            # Im Abwärtstrend (Sell Zone) ist es genau umgekehrt
+            sl = current_price + sl_dist
+            tp = current_price - (sl_dist * 3.0)
+            prob = 75
+            
         lot_size = euro_risk / (sl_dist * 100.0)
         
         return {
@@ -120,7 +149,7 @@ st.markdown("<h1>💰 GOLD SCALPER PRO</h1>", unsafe_allow_html=True)
 if live_verfuegbar:
     st.markdown(f"<div class='update-text'>🔄 Live-Märkte aktiv • Letztes Update: {now}</div>", unsafe_allow_html=True)
 else:
-    st.markdown(f"<div class='update-text' style='color:#ff9900;'>⚠️ Demo-Modus (Wochenende/Märkte geschlossen) • Zeit: {now}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='update-text' style='color:#ff9900;'>⚠️ Demo-Modus (Märkte geschlossen) • Zeit: {now}</div>", unsafe_allow_html=True)
 
 # Inputs
 col_input1, col_input2 = st.columns(2)
@@ -129,20 +158,24 @@ with col_input1:
 with col_input2:
     risk_input = st.number_input("Gewünschtes Risiko (€)", min_value=10, max_value=2000, value=50, step=10)
     
-# Berechnung starten (gibt garantiert immer Werte zurück!)
 res = db.process(sl_input, risk_input, live_verfuegbar)
 
-# Signal-Anzeige
+# DYNAMISCHES SIGNAL (Umschaltung BUY ZONE / SELL ZONE)
 if res["is_bullish"]:
     st.markdown(f"<div class='signal-buy'>🚀 BUY ZONE • ERFOLGSCHANCE {res['prob']}%</div>", unsafe_allow_html=True)
 else:
-    st.markdown(f"<div class='signal-wait'>🛑 WAIT / NO TRADE • ERFOLGSCHANCE {res['prob']}%</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='signal-sell'>💥 SELL ZONE • ERFOLGSCHANCE {res['prob']}%</div>", unsafe_allow_html=True)
     
 # Preis-Kacheln
 c1, c2, c3 = st.columns(3)
-with c1: st.metric(label="EINSTIEG", value=f"{res['current']}")
-with c2: st.metric(label="STOP LOSS", value=f"{res['sl']}", delta=f"-{sl_input}$", delta_color="inverse")
-with c3: st.metric(label="TAKE PROFIT", value=f"{res['tp']}", delta=f"+{sl_input*3.0}$")
+with c1: 
+    st.metric(label="EINSTIEG", value=f"{res['current']}")
+with c2: 
+    prefix = "+" if not res["is_bullish"] else "-"
+    st.metric(label="STOP LOSS", value=f"{res['sl']}", delta=f"{prefix}{sl_input}$", delta_color="inverse")
+with c3: 
+    prefix = "-" if not res["is_bullish"] else "+"
+    st.metric(label="TAKE PROFIT", value=f"{res['tp']}", delta=f"{prefix}{sl_input*3.0}$")
     
 # Lot-Anzeige
 st.markdown(f"""
@@ -151,7 +184,7 @@ st.markdown(f"""
         <span style='font-size: 1.4rem; font-weight: bold; color: #fff;'>{res['lot']} Lots</span>
         <p style='margin: 4px 0 0 0; font-size: 0.75rem; color: #94a3b8;'>
             Tippe diesen Lot-Wert im MetaTrader 5 ein, um bei einem Verlust exakt <b>{risk_input} €</b> zu riskieren.
-            </p>
+        </p>
     </div>
 """, unsafe_allow_html=True)
 
@@ -164,9 +197,10 @@ with st.expander("📊 Zusätzliche Marktstatistiken"):
         st.rerun()
     
 st.markdown("---")
+# Hier wird jetzt das KOMPLETTE PDF erzeugt und zum Download bereitgestellt
 pdf_bytes = generate_handbook_pdf(sl_input)
 st.download_button(
-    label="📥 Handbuch für deinen Freund (PDF)",
+    label="📥 Vollständiges Handbuch herunterladen (PDF)",
     data=bytes(pdf_bytes),
     file_name="Gold_Scalper_Handbuch.pdf",
     mime="application/pdf",

@@ -39,6 +39,7 @@ st.markdown("""
     /* Signal Zone Styles */
     .signal-buy { background-color: #052e16; border: 2px solid #00ff88; color: #00ff88; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 1rem; }
     .signal-sell { background-color: #2d0606; border: 2px solid #ff3333; color: #ff3333; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 1rem; }
+    .signal-wait { background-color: #3b2a06; border: 2px solid #ffaa00; color: #ffaa00; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 1rem; }
     
     .lot-box { background: linear-gradient(135deg, #1e293b, #0f172a); border-left: 5px solid #38bdf8; padding: 12px; border-radius: 4px; margin-bottom: 15px; }
 
@@ -65,16 +66,14 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- DATENABRUF UND LOGIK (DIREKT-FEED OHNE UMRECHNUNG) ---
+# --- DATENABRUF UND LOGIK ---
 class GoldLogic:
     def __init__(self):
-        self.symbol = "GC=F" # Direktes Symbol aus deinem Yahoo-Screenshot
+        self.symbol = "GC=F"
     
     def get_data(self):
         try:
-            # Daten downloaden
             data = yf.download(tickers=self.symbol, period="5d", interval="15m", progress=False)
-            
             if data.empty or len(data) < 20: 
                 return 4500.0, 4510.0, 4490.0, 4495.0, False
                 
@@ -85,11 +84,9 @@ class GoldLogic:
             current_price = float(close_prices[-1])
             avg_price = float(np.mean(close_prices[-20:]))
             
-            # Echte Höchst-/Tiefstwerte ermitteln
             high_today = float(np.max(high_prices[-30:]))
             low_today = float(np.min(low_prices[-30:]))
             
-            # Falls Yahoo nachts flache Linien liefert (High == Low), erzeugen wir eine minimale realistische Spanne
             if high_today == low_today:
                 high_today += 2.5
                 low_today -= 2.5
@@ -115,21 +112,35 @@ c_in1, c_in2 = st.columns(2)
 with c_in1: sl_val = st.slider("Stop Loss ($)", 1.0, 10.0, 3.0, 0.5)
 with c_in2: risk_val = st.number_input("Risiko (€)", 10, 1000, 50, 10)
 
-# SIGNAL-BERECHNUNG & VARIABLE PROZENT-CHANCE
+# --- NEUE INTELLIGENTE SIGNAL-PRÜFUNG ---
 is_bullish = current_price > avg_price
-abstand_prozent = abs(current_price - avg_price) / avg_price
+abstand_absolut = abs(current_price - avg_price)
+
+# Bedingung: Der Preis darf maximal 1.50 Dollar vom SMA entfernt sein für ein scharfes Signal (Retest)
+ist_nah_am_durchschnitt = abstand_absolut <= 1.50
+
+# Trendstärke-Prozentberechnung
+abstand_prozent = abstand_absolut / avg_price
 basis_chance = 60 if is_bullish else 40
 zusatz_chance = min(35, int(abstand_prozent * 5000))
 prob = min(95, basis_chance + zusatz_chance)
 
+# Weist den Boxen Werte zu
 if is_bullish:
     sl_price = current_price - sl_val
     tp_price = current_price + (sl_val * 3)
-    st.markdown(f"<div class='signal-buy'>🚀 BUY ZONE • TREND-STÄRKE {prob}%</div>", unsafe_allow_html=True)
 else:
     sl_price = current_price + sl_val
     tp_price = current_price - (sl_val * 3)
-    st.markdown(f"<div class='signal-sell'>💥 SELL ZONE • TREND-STÄRKE {prob}%</div>", unsafe_allow_html=True)
+
+# SIGNAL ANZEIGEN ODER AUF MARKT WARTEN
+if ist_nah_am_durchschnitt:
+    if is_bullish:
+        st.markdown(f"<div class='signal-buy'>🚀 BUY SIGNAL AKTIV • STÄRKE {prob}%</div>", unsafe_allow_html=True)
+    else:
+        st.markdown(f"<div class='signal-sell'>💥 SELL SIGNAL AKTIV • STÄRKE {prob}%</div>", unsafe_allow_html=True)
+else:
+    st.markdown(f"<div class='signal-wait'>⏳ MARKT BEOBACHTEN • Trend ist {'Up' if is_bullish else 'Down'} (Warte auf Rücksetzer)</div>", unsafe_allow_html=True)
 
 # Positionsgröße berechnen
 lots = round(risk_val / (sl_val * 100), 2)
@@ -162,9 +173,16 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# --- DAS AUSKLAPPBARE FENSTER FÜR DETAILS (EXPANDER) ---
+# --- ERWEITERTES AUSKLAPPBARES FENSTER FÜR DETAILS (EXPANDER) ---
 with st.expander("🔍 Details & Lot-Rechner einblenden"):
     st.info(f"Um bei einem Verlust exakt **{risk_val} €** zu riskieren, musst du im MetaTrader 5 eine Positionsgröße von **{lots} Lots** eingeben.")
+    st.markdown("---")
+    st.write("**Trading-Logik & Bedingungen:**")
+    st.markdown(f"""
+    - **Trendrichtung:** Kurs befindet sich aktuell *{'über' if is_bullish else 'unter'}* dem gleitenden Durchschnitt (SMA-20).
+    - **Einstiegs-Bedingung:** Ein Signal wird erst aktiv, wenn der Live-Kurs maximal **1.50 $** an den SMA heranreicht (Schutz vor Einstiegen in überteuerte Märkte).
+    - **Einstiegspreis:** Nutzt bei Signal-Aktivierung den aktuellen Sekunden-Kurs bei Klick auf Refresh.
+    """)
     st.markdown("---")
     st.write("**Tagesstatistiken (Rollierend):**")
     col_stat1, col_stat2 = st.columns(2)

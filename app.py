@@ -28,13 +28,15 @@ st.markdown("""
         background-color: #1e222b;
         border: 1px solid #3f444e;
         border-radius: 8px;
-        padding: 8px 5px;
+        padding: 12px 5px; /* Etwas mehr vertikaler Platz */
         text-align: center;
     }
-    .trade-label { font-size: 0.7rem; color: #94a3b8; font-weight: bold; text-transform: uppercase; }
-    .trade-value { font-size: 1.05rem; color: #fff; font-weight: bold; display: block; margin-top: 2px; }
-    .delta-plus { color: #ff3333; font-size: 0.7rem; }
-    .delta-minus { color: #00ff88; font-size: 0.7rem; }
+    /* DEUTLICH GRÖSSERE SCHRIFT FÜR DIE LABEL */
+    .trade-label { font-size: 0.85rem; color: #94a3b8; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+    /* MASSIV GRÖSSERE ZAHLEN FÜR EINSTIEG, SL, TP */
+    .trade-value { font-size: 1.4rem; color: #fff; font-weight: 900; display: block; margin-top: 5px; margin-bottom: 3px; }
+    .delta-plus { color: #ff3333; font-size: 0.75rem; font-weight: bold; }
+    .delta-minus { color: #00ff88; font-size: 0.75rem; font-weight: bold; }
 
     /* Signal Zone Styles */
     .signal-buy { background-color: #052e16; border: 2px solid #00ff88; color: #00ff88; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 1rem; }
@@ -112,7 +114,7 @@ c_in1, c_in2 = st.columns(2)
 with c_in1: sl_val = st.slider("Stop Loss ($)", 1.0, 10.0, 3.0, 0.5)
 with c_in2: risk_val = st.number_input("Risiko (€)", 10, 1000, 50, 10)
 
-# --- NEUE INTELLIGENTE SIGNAL-PRÜFUNG ---
+# --- INTELLIGENTE SIGNAL-PRÜFUNG ---
 is_bullish = current_price > avg_price
 abstand_absolut = abs(current_price - avg_price)
 
@@ -145,7 +147,7 @@ else:
 # Positionsgröße berechnen
 lots = round(risk_val / (sl_val * 100), 2)
 
-# HORIZONTALE TRADE-BOXEN
+# HORIZONTALE TRADE-BOXEN (Mit vergrößerten CSS-Klassen)
 st.markdown(f"""
     <div class="trade-container">
         <div class="trade-box">
@@ -182,13 +184,3 @@ with st.expander("🔍 Details & Lot-Rechner einblenden"):
     - **Trendrichtung:** Kurs befindet sich aktuell *{'über' if is_bullish else 'unter'}* dem gleitenden Durchschnitt (SMA-20).
     - **Einstiegs-Bedingung:** Ein Signal wird erst aktiv, wenn der Live-Kurs maximal **1.50 $** an den SMA heranreicht (Schutz vor Einstiegen in überteuerte Märkte).
     - **Einstiegspreis:** Nutzt bei Signal-Aktivierung den aktuellen Sekunden-Kurs bei Klick auf Refresh.
-    """)
-    st.markdown("---")
-    st.write("**Tagesstatistiken (Rollierend):**")
-    col_stat1, col_stat2 = st.columns(2)
-    with col_stat1: st.metric(label="Höchstkurs (High)", value=f"{high_today} $")
-    with col_stat2: st.metric(label="Tiefstkurs (Low)", value=f"{low_today} $")
-
-# Schwebender Refresh Button
-if st.button("Refresh"):
-    st.rerun()

@@ -9,15 +9,15 @@ st.set_page_config(page_title="Gold Scalper Pro", page_icon="💰", layout="cent
 # --- HIGH-END UI DESIGN (CSS) ---
 st.markdown("""
     <style>
-    /* Verschiebt alles extrem weit nach oben (nur 10px Platz zum Rand) */
-    .block-container { padding-top: 10px !important; padding-bottom: 1rem; max-width: 550px !important; }
+    /* Sicherer Abstand nach oben (50px), damit nichts mehr abgeschnitten wird */
+    .block-container { padding-top: 50px !important; padding-bottom: 1rem; max-width: 550px !important; }
     
     /* ANIMIERTER GOLD SCHRIFTZUG & MATTES ROT */
     .gold-title {
         font-size: 1.4rem !important;
         font-weight: 900;
         text-align: center;
-        margin-top: 0px !important; /* Kein zusätzlicher Abstand oben */
+        margin-top: 0px !important;
         margin-bottom: 0.5rem;
         letter-spacing: 1px;
         background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fcf6ba, #bf953f);
@@ -39,6 +39,7 @@ st.markdown("""
         display: flex;
         justify-content: space-between;
         gap: 5px;
+        margin-top: 5px !important;
         margin-bottom: 15px;
     }
     .trade-box {
@@ -84,20 +85,20 @@ st.markdown("""
     /* ORIGINAL SIDEBARS VERSTECKT */
     [data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] { display: none !important; }
 
-    /* --- EXPANDER MITTIG ZENTRIEREN & CLEANER LOOK --- */
+    /* --- EXPANDER MITTIG ZENTRIEREN & PLATZ NACH UNTEN MINIMIEREN --- */
     div[data-testid="stExpander"] {
         display: flex !important;
         flex-direction: column !important;
-        align-items: center !important; /* Zentriert das gesamte Element mittig */
+        align-items: center !important; 
         border: none !important;
         background: transparent !important;
-        margin-bottom: 15px !important;
+        margin-bottom: 2px !important; /* Abstand zur nächsten Anzeige extrem minimiert */
     }
 
     /* Der Header-Button */
     div[data-testid="stExpander"] details summary {
         display: flex !important;
-        justify-content: center !important; /* Zentriert den Text innen */
+        justify-content: center !important; 
         align-items: center !important;
         gap: 8px !important;
         background-color: #1e222b !important;
@@ -107,7 +108,7 @@ st.markdown("""
         width: fit-content !important;
     }
 
-    /* Pfeil auf Standard lassen, aber farblich anpassen */
+    /* Pfeilfarbe */
     div[data-testid="stExpander"] details summary svg {
         fill: #94a3b8 !important;
         color: #94a3b8 !important;
@@ -120,7 +121,7 @@ st.markdown("""
         color: #fff !important;
     }
 
-    /* Das aufgeklappte Einstellungsfenster (ebenfalls sauber zentriert) */
+    /* Das aufgeklappte Einstellungsfenster */
     div[data-testid="stExpander"] details div[data-testid="stExpanderDetails"] {
         background-color: #1e222b !important;
         border: 1px solid #3f444e !important;

@@ -9,15 +9,15 @@ st.set_page_config(page_title="Gold Scalper Pro", page_icon="💰", layout="cent
 # --- HIGH-END UI DESIGN (CSS) ---
 st.markdown("""
     <style>
-    /* Verhindert, dass die Schrift oben aus dem Bildschirm verschwindet */
-    .block-container { padding-top: 3.5rem !important; padding-bottom: 1rem; max-width: 550px !important; }
+    /* Verschiebt alles extrem weit nach oben (nur 10px Platz zum Rand) */
+    .block-container { padding-top: 10px !important; padding-bottom: 1rem; max-width: 550px !important; }
     
     /* ANIMIERTER GOLD SCHRIFTZUG & MATTES ROT */
     .gold-title {
         font-size: 1.4rem !important;
         font-weight: 900;
         text-align: center;
-        margin-top: 10px;
+        margin-top: 0px !important; /* Kein zusätzlicher Abstand oben */
         margin-bottom: 0.5rem;
         letter-spacing: 1px;
         background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fcf6ba, #bf953f);
@@ -84,11 +84,11 @@ st.markdown("""
     /* ORIGINAL SIDEBARS VERSTECKT */
     [data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] { display: none !important; }
 
-    /* --- EXPANDER RECHTS AUSRICHTEN & PFEIL NACH LINKS --- */
+    /* --- EXPANDER MITTIG ZENTRIEREN & CLEANER LOOK --- */
     div[data-testid="stExpander"] {
         display: flex !important;
         flex-direction: column !important;
-        align-items: flex-end !important;
+        align-items: center !important; /* Zentriert das gesamte Element mittig */
         border: none !important;
         background: transparent !important;
         margin-bottom: 15px !important;
@@ -96,51 +96,31 @@ st.markdown("""
 
     /* Der Header-Button */
     div[data-testid="stExpander"] details summary {
-        flex-direction: row-reverse !important;
-        justify-content: flex-end !important;
-        gap: 12px !important;
+        display: flex !important;
+        justify-content: center !important; /* Zentriert den Text innen */
+        align-items: center !important;
+        gap: 8px !important;
         background-color: #1e222b !important;
         border: 1px solid #3f444e !important;
         border-radius: 8px !important;
-        padding: 8px 14px !important;
+        padding: 8px 20px !important;
         width: fit-content !important;
     }
 
-    /* Standard-Pfeil ausblenden */
-    div[data-testid="stExpander"] details summary svg { display: none !important; }
-
-    /* Eigenen Pfeil nach links einbauen */
-    div[data-testid="stExpander"] details summary::before {
-        content: "◀" !important;
-        font-size: 0.75rem !important;
+    /* Pfeil auf Standard lassen, aber farblich anpassen */
+    div[data-testid="stExpander"] details summary svg {
+        fill: #94a3b8 !important;
         color: #94a3b8 !important;
-        transition: transform 0.2s ease !important;
-        display: inline-block !important;
     }
 
-    /* Drehung bei geöffnetem Zustand */
-    div[data-testid="stExpander"] details[open] summary::before {
-        transform: rotate(-90deg) !important;
+    /* Text-Styling im Header */
+    div[data-testid="stExpander"] details summary p {
+        margin: 0 !important;
+        font-weight: bold !important;
         color: #fff !important;
     }
 
-    /* Silberner Flammen-Effekt via CSS */
-    div[data-testid="stExpander"] details summary p {
-        display: flex !important;
-        align-items: center !important;
-        gap: 6px !important;
-        margin: 0 !important;
-    }
-    div[data-testid="stExpander"] details summary p::after {
-        content: "🔥" !important;
-        background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 45%, #b8b8b8 70%, #8e8e8e 100%) !important;
-        -webkit-background-clip: text !important;
-        -webkit-text-fill-color: transparent !important;
-        filter: drop-shadow(0px 0px 3px rgba(255,255,255,0.5)) !important;
-        font-weight: bold !important;
-    }
-
-    /* Das aufgeklappte Einstellungsfenster */
+    /* Das aufgeklappte Einstellungsfenster (ebenfalls sauber zentriert) */
     div[data-testid="stExpander"] details div[data-testid="stExpanderDetails"] {
         background-color: #1e222b !important;
         border: 1px solid #3f444e !important;
@@ -193,7 +173,7 @@ if is_live:
 else:
     st.markdown(f"<div class='status-offline'>○ Markt offline (Demo-Modus) • {now}</div>", unsafe_allow_html=True)
 
-# --- SIGNAL ANZEIGEN (DAS ORANGENE/GRÜNE/ROTE FENSTER) ---
+# --- SIGNAL ANZEIGEN ---
 is_bullish = current_price > avg_price
 abstand_absolut = abs(current_price - avg_price)
 ist_nah_am_durchschnitt = abstand_absolut <= 1.50
@@ -212,13 +192,13 @@ else:
     st.markdown(f"<div class='signal-wait'>⏳ MARKT BEOBACHTEN • Trend ist {'Up' if is_bullish else 'Down'} (Warte auf Rücksetzer)</div>", unsafe_allow_html=True)
 
 
-# --- HIERMIT JETZT UNTER DAS SIGNAL-FENSTER GEPLATZIERT ---
+# --- MITTIG ZENTRIERTES EINSTELLUNGSFENSTER ---
 with st.expander("Einstellungen", expanded=False):
     sl_val = st.slider("Stop Loss ($)", 3.0, 10.0, 3.0, 0.5)
     risk_val = st.number_input("Risiko (€)", 10, 1000, 50, 10)
 
 
-# --- WETERER VERLAUF (BERECHNUNGEN & AUSGABEN) ---
+# --- BERECHNUNGEN & AUSGABEN ---
 if is_bullish:
     sl_price = current_price - sl_val
     tp_price = current_price + (sl_val * 3)

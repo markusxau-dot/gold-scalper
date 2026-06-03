@@ -66,8 +66,8 @@ st.markdown("""
     /* REFRESH BUTTON POSITION */
     div.stButton > button {
         position: fixed !important;
-        right: 25px !important;
-        bottom: 135px !important;
+        right: 0px !important;
+        bottom: 80px !important;
         z-index: 999999 !important;
         border-radius: 50% !important;
         width: 54px !important;

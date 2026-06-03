@@ -2,11 +2,17 @@ import streamlit as st
 import yfinance as yf
 import numpy as np
 import datetime
+import time
 
 # Seiteneinstellungen
 st.set_page_config(page_title="Gold Scalper Pro", page_icon="💰", layout="centered")
 
-# --- DATA RETRIEVAL AND LOGIC ---
+# --- AUTO-REFRESH LOGIK (NATIVER TIMER) ---
+# Erzeugt ein unsichtbares Element, das die Seite alle 60 Sekunden neu triggert
+if "last_refresh" not in st.session_state:
+    st.session_state.last_refresh = time.time()
+
+# --- DATENABRUF UND LOGIK ---
 class GoldLogic:
     def __init__(self):
         self.symbol = "GC=F"
@@ -64,13 +70,11 @@ if ist_nah_am_durchschnitt:
 # --- HIGH-END UI DESIGN (CSS) ---
 st.markdown(f"""
     <style>
-    /* Standard-Layout & Sicherer Abstand nach oben */
     .block-container {{ padding-top: 50px !important; padding-bottom: 0.5rem !important; max-width: 550px !important; transition: all 0.5s ease; }}
     
     /* Pulsierender Gold-Rahmen bei Signal */
     {border_css}
     
-    /* ANIMIERTER GOLD SCHRIFTZUG & MATTES ROT */
     .gold-title {{
         font-size: 1.4rem !important;
         font-weight: 900;
@@ -88,11 +92,9 @@ st.markdown(f"""
     @keyframes shine {{ to {{ background-position: 200% center; }} }}
     .pro-red {{ color: #b91c1c !important; font-weight: 900; -webkit-text-fill-color: #b91c1c !important; }}
     
-    /* Live-Schrift */
     .status-online {{ font-size: 1.2rem !important; font-weight: bold; text-align: center; color: #00ff88; margin-bottom: 0.6rem !important; text-shadow: 0 0 10px rgba(0,255,136,0.3); }}
     .status-offline {{ font-size: 1.2rem !important; font-weight: bold; text-align: center; color: #ff3333; margin-bottom: 0.6rem !important; }}
     
-    /* ERZWUNGENE HORIZONTALE ANORDNUNG */
     .trade-container {{
         display: flex;
         justify-content: space-between;
@@ -113,12 +115,10 @@ st.markdown(f"""
     .delta-plus {{ color: #ff3333; font-size: 0.72rem !important; font-weight: bold; }}
     .delta-minus {{ color: #00ff88; font-size: 0.72rem !important; font-weight: bold; }}
 
-    /* Signal Zone Styles */
     .signal-buy {{ background-color: #052e16; border: 2px solid #00ff88; color: #00ff88; padding: 8px !important; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 0.25rem !important; }}
     .signal-sell {{ background-color: #2d0606; border: 2px solid #ff3333; color: #ff3333; padding: 8px !important; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 0.25rem !important; }}
     .signal-wait {{ background-color: #3b2a06; border: 2px solid #ffaa00; color: #ffaa00; padding: 8px !important; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 0.25rem !important; }}
     
-    /* Positionsgrößen-Box */
     .lot-box {{ background: linear-gradient(135deg, #1e293b, #0f172a); border-left: 5px solid #38bdf8; padding: 9px !important; border-radius: 4px; margin-bottom: 10px !important; }}
 
     /* REFRESH BUTTON POSITION */
@@ -143,7 +143,6 @@ st.markdown(f"""
     
     [data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] {{ display: none !important; }}
 
-    /* ZENTRIERUNG FÜR DEN EINSTELLUNGS-BUTTON */
     div[data-testid="stExpander"] {{
         display: block !important;
         margin: 0 auto !important;
@@ -182,15 +181,6 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- AUTOMATISCHES REFRESH SCRIPT (60 SEKUNDEN) ---
-st.markdown("""
-    <script>
-    setInterval(function(){
-        window.parent.document.querySelector('.stButton button').click();
-    }, 60000);
-    </script>
-""", unsafe_allow_html=True)
-
 # UI Header
 st.markdown('<div class="gold-title">💰 GOLD SCALPING <span class="pro-red">PRO</span></div>', unsafe_allow_html=True)
 
@@ -208,7 +198,6 @@ prob = min(95, basis_chance + zusatz_chance)
 dynamik = min(99, int((abstand_absolut / 20.0) * 100)) if abstand_absolut > 0 else 0
 
 if ist_nah_am_durchschnitt:
-    # Dezenter Sound-Effekt (Notification Ping) via HTML5 Audio
     st.markdown("""
         <audio autoplay>
             <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-500.wav" type="audio/wav">
@@ -246,7 +235,7 @@ else:
 
 lots = round(risk_val / (sl_val * 100), 2)
 
-# TRADE-BOXEN
+# HORIZONTALE TRADE-BOXEN
 trade_html = f"""
 <div class="trade-container">
     <div class="trade-box">
@@ -267,7 +256,6 @@ trade_html = f"""
 """
 st.markdown(trade_html, unsafe_allow_html=True)
 
-# Lot Anzeige
 st.markdown(f"""
 <div class='lot-box'>
     <span style='color: #38bdf8; font-weight: bold; font-size: 0.75rem;'>POSITIONSGRÖSSE</span><br>
@@ -288,13 +276,18 @@ with st.expander("🔍 Details & Lot-Rechner einblenden"):
     
     st.write("**Trading-Logik & Bedingungen:**")
     st.markdown(f"""
-    - **Trendbestimmung (SMA-20):** Der Kurs befindet sich aktuell *{'über (Bullish)' if is_bullish else 'unter (Bearish)'}* dem gleitenden Durchschnitt der letzten 20 Kerzen. Es werden nur Trades in Trendrichtung vorgeschlagen.
-    - **Erklärung zur Trend-Dynamik (%):** Im Wartemodus zeigt dieser Prozentwert an, wie weit sich der Kurs vom SMA-20 entfernt hat (basierend auf einer maximalen Spanne von 20$). Eine sinkende Prozentzahl signalisiert, dass der Kurs den gewünschten Rücksetzer zum Durchschnitt einleitet.
-    - **Einstiegs-Trigger:** Ein Signal schaltet erst auf aktiv (BUY/SELL), wenn der Abstand zwischen dem Live-Kurs und dem SMA-20 maximal **1.50 $** beträgt (Rücksetzer-Strategie).
-    - **Risiko-Management (CRV 1:{crv_val}):** Der Take Profit ist fest auf das **{crv_val}-Fache** des gewählten Stop Loss eingestellt, um ein mathematisch positives Gewinnverhältnis zu sichern.
-    - **Lot-Formel:** Berechnung basiert auf dem eingestellten Dollar-Risiko geteilt durch den Stop-Loss-Abstand (Multiplikator 100 pro Punkt im Gold-Future).
+    - **Trendbestimmung (SMA-20):** Der Kurs befindet sich aktuell *{'über (Bullish)' if is_bullish else 'unter (Bearish)'}* dem gleitenden Durchschnitt.
+    - **Erklärung zur Trend-Dynamik (%):** Im Wartemodus zeigt dieser Prozentwert an, wie weit sich der Kurs vom SMA-20 entfernt hat.
+    - **Einstiegs-Trigger:** Ein Signal schaltet erst auf aktiv, wenn der Abstand zum SMA-20 maximal **1.50 $** beträgt.
+    - **Risiko-Management (CRV 1:{crv_val}):** Der Take Profit ist fest auf das **{crv_val}-Fache** des Stop Loss eingestellt.
+    - **Lot-Formel:** Risiko ($) / (Stop Loss * 100).
     """)
 
-# Schwebender Refresh Button (wird auch vom Auto-Refresh-Skript getriggert)
+# Schwebender Manueller Refresh Button
 if st.button("Refresh"):
     st.rerun()
+
+# --- META-REFRESH (STABILE NATIVE METHODE) ---
+# Erzwingt nach 60 Sekunden einen sauberen App-Rerun im Server-Hintergrund
+time.sleep(60)
+st.rerun()

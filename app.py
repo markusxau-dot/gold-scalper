@@ -9,8 +9,8 @@ st.set_page_config(page_title="Gold Scalper Pro", page_icon="💰", layout="cent
 # --- HIGH-END UI DESIGN (CSS) ---
 st.markdown("""
     <style>
-    /* Sicherer Abstand nach oben (50px), damit nichts mehr abgeschnitten wird */
-    .block-container { padding-top: 40px !important; padding-bottom: 1rem; max-width: 550px !important; }
+    /* Sicherer Abstand nach oben (50px), damit auf Mobilgeräten nichts verschwindet */
+    .block-container { padding-top: 50px !important; padding-bottom: 1rem; max-width: 550px !important; }
     
     /* ANIMIERTER GOLD SCHRIFTZUG & MATTES ROT */
     .gold-title {
@@ -39,7 +39,7 @@ st.markdown("""
         display: flex;
         justify-content: space-between;
         gap: 5px;
-        margin-top: 5px !important;
+        margin-top: 0px !important; /* Abstand nach oben komplett entfernt */
         margin-bottom: 15px;
     }
     .trade-box {
@@ -65,8 +65,8 @@ st.markdown("""
     /* REFRESH BUTTON POSITION */
     div.stButton > button {
         position: fixed !important;
-        right: 20px !important;
-        bottom: 90px !important;
+        right: 25px !important;
+        bottom: 135px !important;
         z-index: 999999 !important;
         border-radius: 50% !important;
         width: 54px !important;
@@ -85,17 +85,24 @@ st.markdown("""
     /* ORIGINAL SIDEBARS VERSTECKT */
     [data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] { display: none !important; }
 
-    /* --- EXPANDER MITTIG ZENTRIEREN & PLATZ NACH UNTEN MINIMIEREN --- */
+    /* --- EXPANDER RADIKAL KOMPRIMIEREN & ZENTRIEREN --- */
     div[data-testid="stExpander"] {
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important; 
         border: none !important;
         background: transparent !important;
-        margin-bottom: 2px !important; /* Abstand zur nächsten Anzeige extrem minimiert */
+        margin-bottom: 0px !important; /* Entfernt den äußeren unteren Abstand */
+        padding-bottom: 0px !important;
     }
 
-    /* Der Header-Button */
+    /* Das umschließende Element im Streamlit-Grid zwingen, keinen Platz zu verbrauchen */
+    div[data-testid="stExpander"] > details {
+        margin-bottom: 0px !important;
+        padding-bottom: 0px !important;
+    }
+
+    /* Der eigentliche Header-Button */
     div[data-testid="stExpander"] details summary {
         display: flex !important;
         justify-content: center !important; 
@@ -104,21 +111,23 @@ st.markdown("""
         background-color: #1e222b !important;
         border: 1px solid #3f444e !important;
         border-radius: 8px !important;
-        padding: 8px 20px !important;
+        padding: 6px 18px !important;
         width: fit-content !important;
+        height: auto !important;
     }
 
-    /* Pfeilfarbe */
+    /* Standard-Pfeilikone farblich anpassen */
     div[data-testid="stExpander"] details summary svg {
         fill: #94a3b8 !important;
         color: #94a3b8 !important;
     }
 
-    /* Text-Styling im Header */
+    /* Text im Button */
     div[data-testid="stExpander"] details summary p {
         margin: 0 !important;
         font-weight: bold !important;
         color: #fff !important;
+        font-size: 0.95rem !important;
     }
 
     /* Das aufgeklappte Einstellungsfenster */
@@ -193,13 +202,13 @@ else:
     st.markdown(f"<div class='signal-wait'>⏳ MARKT BEOBACHTEN • Trend ist {'Up' if is_bullish else 'Down'} (Warte auf Rücksetzer)</div>", unsafe_allow_html=True)
 
 
-# --- MITTIG ZENTRIERTES EINSTELLUNGSFENSTER ---
+# --- PERFEKT ZENTRIERTER BUTTON (ABSTAND NACH UNTEN ELIMINIERT) ---
 with st.expander("Einstellungen", expanded=False):
     sl_val = st.slider("Stop Loss ($)", 3.0, 10.0, 3.0, 0.5)
     risk_val = st.number_input("Risiko (€)", 10, 1000, 50, 10)
 
 
-# --- BERECHNUNGEN & AUSGABEN ---
+# --- DIREKT DARUNTER FOLGENDE ANZEIGEN ---
 if is_bullish:
     sl_price = current_price - sl_val
     tp_price = current_price + (sl_val * 3)

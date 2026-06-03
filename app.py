@@ -60,11 +60,11 @@ st.markdown("""
     
     .lot-box { background: linear-gradient(135deg, #1e293b, #0f172a); border-left: 5px solid #38bdf8; padding: 12px; border-radius: 4px; margin-bottom: 15px; }
 
-    /* REFRESH BUTTON POSITION (UNTERE MARKIERUNG MIT WEISSEM RING) */
+    /* REFRESH BUTTON POSITION */
     div.stButton > button {
         position: fixed !important;
         right: 25px !important;
-        bottom: 135px !important; /* Exakt auf Höhe der Lots platziert */
+        bottom: 135px !important;
         z-index: 999999 !important;
         border-radius: 50% !important;
         width: 54px !important;
@@ -80,44 +80,37 @@ st.markdown("""
     div.stButton > button p { display: none !important; }
     div.stButton > button::before { content: "↻" !important; font-size: 24px; font-weight: bold; }
     
-    /* --- RADIKALE SEPARIERUNG & NEUPOSITIONIERUNG DER SIDEBAR --- */
+    /* --- SIDEBAR PFEIL NACH RECHTS & SILBER OPTIK --- */
     
-    /* Layout auf Rechtslauf umstellen */
-    .stApp { flex-direction: row-reverse !important; }
-    
-    /* Das Bedienelement komplett entkoppeln und starr oben rechts fixieren */
+    /* Pfeil oben links eliminieren */
     [data-testid="stSidebarCollapsedControl"] {
         position: fixed !important;
         left: auto !important;
-        right: 20px !important; /* Exakt an der oberen roten Markierung */
+        right: 15px !important;
         top: 15px !important;
-        z-index: 9999999 !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 45px !important;
-        height: 45px !important;
-        background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 40%, #b0b0b0 70%, #888888 100%) !important; /* Silber-Metallic Schimmer */
+        z-index: 1000000 !important;
+        background: linear-gradient(145deg, #ffffff, #8a8a8a) !important; /* Silber Metallic */
         border: 2px solid #ffffff !important;
-        border-radius: 10px !important;
-        box-shadow: 0px 4px 12px rgba(255, 255, 255, 0.3) !important;
+        border-radius: 8px !important;
+        box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.5) !important;
+        width: 42px !important;
+        height: 42px !important;
     }
     
-    /* Den Pfeil im inneren des neuen Buttons umdrehen, damit er nach links zeigt */
+    /* Pfeil-Icon im Inneren nach Rechts spiegeln und abdunkeln */
     [data-testid="stSidebarCollapsedControl"] svg {
         transform: rotate(180deg) !important;
         fill: #1e222b !important;
         color: #1e222b !important;
     }
-    
-    /* Die geöffnete Sidebar visuell rechts fixieren */
+
+    /* Sidebar selbst rechts fixieren */
+    .stApp { flex-direction: row-reverse !important; }
     section[data-testid="stSidebar"] {
         left: auto !important;
         right: 0 !important;
         background-color: #2d333f !important;
         border-left: 2px solid #3f444e !important;
-        border-right: none !important;
-        box-shadow: -5px 0px 25px rgba(0,0,0,0.6) !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -231,15 +224,14 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# --- EXPANDER MIT VOLLSTÄNDIGEN DETAILS ---
+# --- EXPANDER ---
 with st.expander("🔍 Details & Lot-Rechner einblenden"):
     st.info(f"Um bei einem Verlust exakt **{risk_val} €** zu riskieren, musst du im MetaTrader 5 eine Positionsgröße von **{lots} Lots** eingeben.")
     st.markdown("---")
     st.write("**Trading-Logik & Bedingungen:**")
     st.markdown(f"""
     - **Trendrichtung:** Kurs befindet sich aktuell *{'über' if is_bullish else 'unter'}* dem gleitenden Durchschnitt (SMA-20).
-    - **Einstiegs-Bedingung:** Ein Signal wird erst aktiv, wenn der Live-Kurs maximal **1.50 $** an den SMA heranreicht (Schutz vor Einstiegen in überteuerte Märkte).
-    - **Einstiegspreis:** Nutzt bei Signal-Aktivierung den aktuellen Sekunden-Kurs bei Klick auf Refresh.
+    - **Einstiegs-Bedingung:** Ein Signal wird erst aktiv, wenn der Live-Kurs maximal **1.50 $** an den SMA heranreicht.
     """)
     st.markdown("---")
     st.write("**Tagesstatistiken (Rollierend):**")

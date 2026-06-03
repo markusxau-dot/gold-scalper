@@ -60,11 +60,11 @@ st.markdown("""
     
     .lot-box { background: linear-gradient(135deg, #1e293b, #0f172a); border-left: 5px solid #38bdf8; padding: 12px; border-radius: 4px; margin-bottom: 15px; }
 
-    /* REFRESH BUTTON POSITION (NOCH TIEFER GESETZT) */
+    /* REFRESH BUTTON POSITION (ETWAS TIEFER GESETZT) */
     div.stButton > button {
         position: fixed !important;
         right: 25px !important;
-        bottom: 90px !important; /* Tiefer gesetzt */
+        bottom: 80px !important; /* Etwas tiefer gesetzt wie gewünscht */
         z-index: 999999 !important;
         border-radius: 50% !important;
         width: 54px !important;
@@ -80,27 +80,47 @@ st.markdown("""
     div.stButton > button p { display: none !important; }
     div.stButton > button::before { content: "↻" !important; font-size: 24px; font-weight: bold; }
     
-    /* SIDEBAR PFEIL OBEN RECHTS & SILBER SCHIMMERND */
+    /* --- SIDEBAR RECHTS & SILBERNER PFEIL RADIKAL ERZWUNGEN --- */
+    
+    /* Hauptlayout spiegeln */
+    .stApp { flex-direction: row-reverse !important; }
+    
+    /* Originalen linken Button komplett unsichtbar machen */
+    [data-testid="stSidebarCollapsedControl"] button { display: none !important; }
+    
+    /* Einen komplett neuen, unübersehbaren silbernen Trigger oben rechts erstellen */
     [data-testid="stSidebarCollapsedControl"] {
         left: auto !important;
-        right: 15px !important;
-        top: 15px !important;
-        background: linear-gradient(145deg, #ffffff, #a1a1a1) !important; /* Silberner Schimmer */
-        border: 1px solid #ffffff !important;
-        border-radius: 8px !important;
-        padding: 4px !important;
-        box-shadow: 0px 0px 12px rgba(255, 255, 255, 0.4) !important;
+        right: 20px !important; /* Exakt am oberen roten Punkt */
+        top: 20px !important;
+        width: 44px !important;
+        height: 44px !important;
+        background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 45%, #b8b8b8 70%, #8e8e8e 100%) !important; /* Starker Silber-Metallic Schimmer */
+        border: 2px solid #ffffff !important;
+        border-radius: 10px !important;
+        box-shadow: 0px 4px 15px rgba(255, 255, 255, 0.4) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
     }
     
-    /* SIDEBAR RECHTS AUSRICHTEN */
+    /* Modifiziert das Icon im Gehäuse, damit es dunkel und lesbar im Silber glänzt */
+    [data-testid="stSidebarCollapsedControl"] svg {
+        fill: #1e222b !important;
+        color: #1e222b !important;
+        transform: rotate(180deg) !important; /* Dreht den Pfeil passend für rechts um */
+    }
+    
+    /* Sidebar visuell rechts verankern und abheben */
     section[data-testid="stSidebar"] {
         left: auto !important;
         right: 0 !important;
-        background-color: #2d333f !important;
+        background-color: #2d333f !important; /* Erhöhter Kontrast */
         border-left: 2px solid #3f444e !important;
+        border-right: none !important;
+        box-shadow: -5px 0px 25px rgba(0,0,0,0.6) !important;
     }
-    
-    .stApp { flex-direction: row-reverse !important; }
     </style>
 """, unsafe_allow_html=True)
 

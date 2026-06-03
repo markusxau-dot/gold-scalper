@@ -4,162 +4,192 @@ import numpy as np
 import datetime
 
 # Seiteneinstellungen
-st.set_page_config(page_title="Gold Scalping Pro", page_icon="💰", layout="centered")
+st.set_page_config(page_title="Gold Scalper Pro", page_icon="💰", layout="centered")
 
 # --- HIGH-END UI DESIGN (CSS) ---
 st.markdown("""
     <style>
-    /* Grundlayout Optimierung für Mobile (Kein Scrollen) */
-    .block-container { 
-        padding-top: 2rem !important; 
-        padding-bottom: 0rem !important; 
-        max-width: 500px !important; 
-    }
+    .block-container { padding-top: 2rem !important; padding-bottom: 1rem; max-width: 550px !important; }
     
-    /* ANIMIERTER GOLD SCHRIFTZUG */
+    /* ANIMIERTER GOLD SCHRIFTZUG & MATTES ROT */
     .gold-title {
         font-size: 1.4rem !important;
         font-weight: 900;
         text-align: center;
-        margin-bottom: 0px;
+        margin-top: 10px;
+        margin-bottom: 0.5rem;
         letter-spacing: 1px;
         background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fcf6ba, #bf953f);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-size: 200% auto;
         animation: shine 3s linear infinite;
+        display: block;
     }
     @keyframes shine {
         to { background-position: 200% center; }
     }
     .pro-red {
-        color: #b91c1c; /* Mattes Rot */
-        font-size: 1.4rem;
+        color: #b91c1c !important;
         font-weight: 900;
-        text-shadow: none;
-    }
-
-    /* Sidebar Kontrast */
-    [data-testid="stSidebar"] {
-        background-color: #2d333f !important; /* Helleres Grau für Kontrast */
-        border-left: 2px solid #3f444e !important;
-        box-shadow: -5px 0px 15px rgba(0,0,0,0.5);
+        text-shadow: none !important;
+        -webkit-text-fill-color: #b91c1c !important;
     }
     
-    /* Live-Status Schrift */
-    .status-online { font-size: 1rem !important; font-weight: bold; text-align: center; color: #00ff88; margin-bottom: 0.5rem; }
+    /* Live-Schrift Größer & Dynamisch */
+    .status-online { font-size: 1.2rem !important; font-weight: bold; text-align: center; color: #00ff88; margin-bottom: 1rem; text-shadow: 0 0 10px rgba(0,255,136,0.3); }
+    .status-offline { font-size: 1.2rem !important; font-weight: bold; text-align: center; color: #ff3333; margin-bottom: 1rem; }
     
-    /* Trade Boxen Design */
-    .trade-container { display: flex; justify-content: space-between; gap: 4px; margin-bottom: 10px; }
+    /* ERZWUNGENE HORIZONTALE ANORDNUNG (Einstieg, SL, TP) */
+    .trade-container {
+        display: flex;
+        justify-content: space-between;
+        gap: 5px;
+        margin-bottom: 15px;
+    }
     .trade-box {
         flex: 1;
         background-color: #1e222b;
         border: 1px solid #3f444e;
-        border-radius: 6px;
-        padding: 8px 2px;
+        border-radius: 8px;
+        padding: 12px 5px;
         text-align: center;
     }
-    .trade-label { font-size: 0.7rem; color: #94a3b8; font-weight: bold; text-transform: uppercase; }
-    .trade-value { font-size: 1.1rem; color: #fff; font-weight: 800; display: block; }
+    .trade-label { font-size: 0.85rem; color: #94a3b8; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+    .trade-value { font-size: 1.4rem; color: #fff; font-weight: 900; display: block; margin-top: 5px; margin-bottom: 3px; }
+    .delta-plus { color: #ff3333; font-size: 0.75rem; font-weight: bold; }
+    .delta-minus { color: #00ff88; font-size: 0.75rem; font-weight: bold; }
 
-    /* Signal Zone */
-    .signal-box { padding: 8px; border-radius: 6px; text-align: center; font-weight: bold; font-size: 0.9rem; margin-bottom: 0.8rem; }
-    .signal-buy { background-color: #052e16; border: 1px solid #00ff88; color: #00ff88; }
-    .signal-sell { background-color: #2d0606; border: 1px solid #ff3333; color: #ff3333; }
-    .signal-wait { background-color: #3b2a06; border: 1px solid #ffaa00; color: #ffaa00; }
+    /* Signal Zone Styles */
+    .signal-buy { background-color: #052e16; border: 2px solid #00ff88; color: #00ff88; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 1rem; }
+    .signal-sell { background-color: #2d0606; border: 2px solid #ff3333; color: #ff3333; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 1rem; }
+    .signal-wait { background-color: #3b2a06; border: 2px solid #ffaa00; color: #ffaa00; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 1rem; }
     
-    /* Lot Anzeige */
-    .lot-box { background: #1e293b; border-left: 4px solid #38bdf8; padding: 10px; border-radius: 4px; margin-bottom: 10px; }
+    .lot-box { background: linear-gradient(135deg, #1e293b, #0f172a); border-left: 5px solid #38bdf8; padding: 12px; border-radius: 4px; margin-bottom: 15px; }
 
-    /* AKTUALISIERUNGSKNOPF (HÖHER GESETZT) */
+    /* REFRESH BUTTON UNTEN RECHTS (ETWAS HÖHER GESETZT) */
     div.stButton > button {
         position: fixed !important;
         right: 20px !important;
-        bottom: 45px !important; /* Höher gesetzt für bessere Erreichbarkeit */
-        z-index: 9999;
+        bottom: 45px !important; /* Von 25px auf 45px angehoben */
+        z-index: 999999 !important;
         border-radius: 50% !important;
-        width: 55px !important;
-        height: 55px !important;
+        width: 50px !important;
+        height: 50px !important;
         background-color: #38bdf8 !important;
-        border: 2px solid #ccff00 !important;
-        box-shadow: 0px 0px 15px rgba(204, 255, 0, 0.4) !important;
+        color: white !important;
+        border: 3px solid #ccff00 !important;
+        box-shadow: 0px 4px 15px rgba(204, 255, 0, 0.5) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
-    div.stButton > button::before { content: "↻" !important; font-size: 24px; color: white; }
     div.stButton > button p { display: none !important; }
+    div.stButton > button::before { content: "↻" !important; font-size: 22px; font-weight: bold; }
+    
+    /* SIDEBAR KONTRAST ERHÖHT */
+    [data-testid="stSidebar"] {
+        background-color: #2d333f !important; /* Helleres Grau für besseren Kontrast */
+        border-left: 2px solid #3f444e !important;
+        box-shadow: -5px 0px 15px rgba(0,0,0,0.5) !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
 # --- SIDEBAR (RECHTS) ---
 with st.sidebar:
-    st.markdown("<h3 style='color: white; text-align: center;'>CONTROL</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color: #fff; text-align: center;'>⚙️ Einstellungen</h3>", unsafe_allow_html=True)
+    st.markdown("---")
     sl_val = st.slider("Stop Loss ($)", 3.0, 10.0, 3.0, 0.5)
     risk_val = st.number_input("Risiko (€)", 10, 1000, 50, 10)
 
-# --- LOGIK ---
+# --- DATENABRUF UND LOGIK ---
 class GoldLogic:
+    def __init__(self):
+        self.symbol = "GC=F"
+    
     def get_data(self):
         try:
-            data = yf.download(tickers="GC=F", period="2d", interval="15m", progress=False)
-            current = float(data['Close'].iloc[-1])
-            avg = float(data['Close'].rolling(20).mean().iloc[-1])
-            return round(current, 2), round(avg, 2), True
-        except: return 4505.50, 4500.00, False
+            data = yf.download(tickers=self.symbol, period="5d", interval="15m", progress=False)
+            if data.empty or len(data) < 20: 
+                return 4500.0, 4510.0, 4490.0, 4495.0, False
+                
+            close_prices = data['Close'].values.flatten()
+            high_prices = data['High'].values.flatten()
+            low_prices = data['Low'].values.flatten()
+            
+            current_price = float(close_prices[-1])
+            avg_price = float(np.mean(close_prices[-20:]))
+            
+            high_today = float(np.max(high_prices[-30:]))
+            low_today = float(np.min(low_prices[-30:]))
+            
+            if high_today == low_today:
+                high_today += 2.5
+                low_today -= 2.5
+            
+            return round(current_price, 2), round(high_today, 2), round(low_today, 2), round(avg_price, 2), True
+        except: 
+            return 4502.20, 4520.00, 4495.00, 4500.00, False
 
 db = GoldLogic()
-price, sma, live = db.get_data()
+current_price, high_today, low_today, avg_price, is_live = db.get_data()
 now = datetime.datetime.now().strftime("%H:%M:%S")
 
-# --- UI DARSTELLUNG ---
-st.markdown(f'<div class="gold-title">GOLD SCALPING <span class="pro-red">PRO</span></div>', unsafe_allow_html=True)
-st.markdown(f"<div class='status-online'>● Live-Daten • {now}</div>", unsafe_allow_html=True)
+# UI Header (Mit neuer CSS Klasse)
+st.markdown('<div class="gold-title">💰 GOLD SCALPING <span class="pro-red">PRO</span></div>', unsafe_allow_html=True)
 
-# Signal Berechnung
-diff = price - sma
-is_bullish = diff > 0
-is_ready = abs(diff) <= 1.50
-
-if is_ready:
-    msg = "BUY SIGNAL AKTIV" if is_bullish else "SELL SIGNAL AKTIV"
-    css = "signal-buy" if is_bullish else "signal-sell"
+if is_live:
+    st.markdown(f"<div class='status-online'>● Live-Daten aktiv • {now}</div>", unsafe_allow_html=True)
 else:
-    msg = f"WARTE... Trend {'Up' if is_bullish else 'Down'}"
-    css = "signal-wait"
+    st.markdown(f"<div class='status-offline'>○ Markt offline (Demo-Modus) • {now}</div>", unsafe_allow_html=True)
 
-st.markdown(f"<div class='signal-box {css}'>{msg}</div>", unsafe_allow_html=True)
+# --- INTELLIGENTE SIGNAL-PRÜFUNG ---
+is_bullish = current_price > avg_price
+abstand_absolut = abs(current_price - avg_price)
 
-# Berechnung SL/TP
-sl_price = price - sl_val if is_bullish else price + sl_val
-tp_price = price + (sl_val * 3) if is_bullish else price - (sl_val * 3)
+# Bedingung: Der Preis darf maximal 1.50 Dollar vom SMA entfernt sein für ein scharfes Signal
+ist_nah_am_durchschnitt = abstand_absolut <= 1.50
+
+# Trendstärke-Prozentberechnung
+abstand_prozent = abstand_absolut / avg_price
+basis_chance = 60 if is_bullish else 40
+zusatz_chance = min(35, int(abstand_prozent * 5000))
+prob = min(95, basis_chance + zusatz_chance)
+
+# Weist den Boxen Werte zu
+if is_bullish:
+    sl_price = current_price - sl_val
+    tp_price = current_price + (sl_val * 3)
+else:
+    sl_price = current_price + sl_val
+    tp_price = current_price - (sl_val * 3)
+
+# SIGNAL ANZEIGEN ODER AUF MARKT WARTEN
+if ist_nah_am_durchschnitt:
+    if is_bullish:
+        st.markdown(f"<div class='signal-buy'>🚀 BUY SIGNAL AKTIV • STÄRKE {prob}%</div>", unsafe_allow_html=True)
+    else:
+        st.markdown(f"<div class='signal-sell'>💥 SELL SIGNAL AKTIV • STÄRKE {prob}%</div>", unsafe_allow_html=True)
+else:
+    st.markdown(f"<div class='signal-wait'>⏳ MARKT BEOBACHTEN • Trend ist {'Up' if is_bullish else 'Down'} (Warte auf Rücksetzer)</div>", unsafe_allow_html=True)
+
+# Positionsgröße berechnen
 lots = round(risk_val / (sl_val * 100), 2)
 
-# Trade Grid
-st.markdown(f"""
+# HORIZONTALE TRADE-BOXEN
+trade_html = f"""
 <div class="trade-container">
     <div class="trade-box">
         <span class="trade-label">Einstieg</span>
-        <span class="trade-value">{price}</span>
+        <span class="trade-value">{current_price}</span>
     </div>
-    <div class="trade-box" style="border-color: #ef4444;">
+    <div class="trade-box" style="border-color: #7f1d1d;">
         <span class="trade-label">Stop Loss</span>
-        <span class="trade-value">{round(sl_price, 1)}</span>
+        <span class="trade-value">{round(sl_price, 2)}</span>
+        <span class="delta-plus">{"-" if is_bullish else "+"}{sl_val}$</span>
     </div>
-    <div class="trade-box" style="border-color: #10b981;">
+    <div class="trade-box" style="border-color: #064e3b;">
         <span class="trade-label">Take Profit</span>
-        <span class="trade-value">{round(tp_price, 1)}</span>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-st.markdown(f"""
-<div class='lot-box'>
-    <span style='color: #38bdf8; font-size: 0.7rem; font-weight: bold;'>POSITION</span><br>
-    <span style='font-size: 1.4rem; font-weight: bold; color: #fff;'>{lots} Lots</span>
-</div>
-""", unsafe_allow_html=True)
-
-with st.expander("🔍 Rechner Info"):
-    st.write(f"Risiko: {risk_val}€ | SL: {sl_val}$")
-
-# Refresh Button
-if st.button(" "):
-    st.rerun()
+        <span class="trade-value">{round(tp_price, 2)}</span>
+        <span class

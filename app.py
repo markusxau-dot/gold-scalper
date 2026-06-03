@@ -6,129 +6,7 @@ import datetime
 # Seiteneinstellungen
 st.set_page_config(page_title="Gold Scalper Pro", page_icon="💰", layout="centered")
 
-# --- HIGH-END UI DESIGN (CSS) ---
-st.markdown("""
-    <style>
-    /* Sicherer Abstand nach oben (50px), damit auf Mobilgeräten nichts verschwindet */
-    .block-container { padding-top: 50px !important; padding-bottom: 0.5rem !important; max-width: 550px !important; }
-    
-    /* ANIMIERTER GOLD SCHRIFTZUG & MATTES ROT */
-    .gold-title {
-        font-size: 1.4rem !important;
-        font-weight: 900;
-        text-align: center;
-        margin-top: 0px !important;
-        margin-bottom: 0.2rem !important;
-        letter-spacing: 1px;
-        background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fcf6ba, #bf953f);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-size: 200% auto;
-        animation: shine 3s linear infinite;
-        display: block;
-    }
-    @keyframes shine { to { background-position: 200% center; } }
-    .pro-red { color: #b91c1c !important; font-weight: 900; -webkit-text-fill-color: #b91c1c !important; }
-    
-    /* Live-Schrift */
-    .status-online { font-size: 1.2rem !important; font-weight: bold; text-align: center; color: #00ff88; margin-bottom: 0.6rem !important; text-shadow: 0 0 10px rgba(0,255,136,0.3); }
-    .status-offline { font-size: 1.2rem !important; font-weight: bold; text-align: center; color: #ff3333; margin-bottom: 0.6rem !important; }
-    
-    /* ERZWUNGENE HORIZONTALE ANORDNUNG (Einstieg, SL, TP) */
-    .trade-container {
-        display: flex;
-        justify-content: space-between;
-        gap: 5px;
-        margin-top: 0px !important;
-        margin-bottom: 10px !important;
-    }
-    .trade-box {
-        flex: 1;
-        background-color: #1e222b;
-        border: 1px solid #3f444e;
-        border-radius: 8px;
-        padding: 9px 4px !important;
-        text-align: center;
-    }
-    .trade-label { font-size: 0.8rem !important; color: #94a3b8; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
-    .trade-value { font-size: 1.35rem !important; color: #fff; font-weight: 900; display: block; margin-top: 3px !important; margin-bottom: 1px !important; }
-    .delta-plus { color: #ff3333; font-size: 0.72rem !important; font-weight: bold; }
-    .delta-minus { color: #00ff88; font-size: 0.72rem !important; font-weight: bold; }
-
-    /* Signal Zone Styles */
-    .signal-buy { background-color: #052e16; border: 2px solid #00ff88; color: #00ff88; padding: 8px !important; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 0.25rem !important; }
-    .signal-sell { background-color: #2d0606; border: 2px solid #ff3333; color: #ff3333; padding: 8px !important; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 0.25rem !important; }
-    .signal-wait { background-color: #3b2a06; border: 2px solid #ffaa00; color: #ffaa00; padding: 8px !important; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 0.25rem !important; }
-    
-    /* Positionsgrößen-Box */
-    .lot-box { background: linear-gradient(135deg, #1e293b, #0f172a); border-left: 5px solid #38bdf8; padding: 9px !important; border-radius: 4px; margin-bottom: 10px !important; }
-
-    /* REFRESH BUTTON POSITION */
-    div.stButton > button {
-        position: fixed !important;
-        right: 0px !important;
-        bottom: 80px !important;
-        z-index: 999999 !important;
-        border-radius: 50% !important;
-        width: 54px !important;
-        height: 54px !important;
-        background-color: #38bdf8 !important;
-        color: white !important;
-        border: 3px solid #ffffff !important;
-        box-shadow: 0px 4px 15px rgba(255, 255, 255, 0.4) !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-    div.stButton > button p { display: none !important; }
-    div.stButton > button::before { content: "↻" !important; font-size: 24px; font-weight: bold; }
-    
-    /* ORIGINAL SIDEBARS VERSTECKT */
-    [data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] { display: none !important; }
-
-    /* --- ERZWUNGENE ZENTRIERUNG FÜR DEN EINSTELLUNGS-BUTTON --- */
-    div[data-testid="stExpander"] {
-        display: block !important;
-        margin: 0 auto !important;
-        text-align: center !important;
-        width: 100% !important;
-    }
-    div[data-testid="stExpander"] > details {
-        display: inline-block !important;
-        margin: 0 auto !important;
-        text-align: left !important;
-    }
-
-    /* Der eigentliche Header-Button (Einstellungen) */
-    div[data-testid="stExpander"] details summary {
-        display: flex !important;
-        justify-content: center !important; 
-        align-items: center !important;
-        gap: 8px !important;
-        background-color: #1e222b !important;
-        border: 1px solid #3f444e !important;
-        border-radius: 8px !important;
-        padding: 5px 14px !important;
-        width: fit-content !important;
-        margin: 0 auto !important;
-        height: auto !important;
-    }
-    div[data-testid="stExpander"] details summary svg { fill: #94a3b8 !important; color: #94a3b8 !important; }
-    div[data-testid="stExpander"] details summary p { margin: 0 !important; font-weight: bold !important; color: #fff !important; font-size: 0.9rem !important; }
-
-    /* Das aufgeklappte Einstellungsfenster */
-    div[data-testid="stExpander"] details div[data-testid="stExpanderDetails"] {
-        background-color: #1e222b !important;
-        border: 1px solid #3f444e !important;
-        border-radius: 8px !important;
-        padding: 12px !important;
-        width: 280px !important;
-        margin: 4px auto 0 auto !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# --- DATENABRUF UND LOGIK ---
+# --- DATA RETRIEVAL AND LOGIC ---
 class GoldLogic:
     def __init__(self):
         self.symbol = "GC=F"
@@ -161,6 +39,158 @@ db = GoldLogic()
 current_price, high_today, low_today, avg_price, is_live = db.get_data()
 now = datetime.datetime.now().strftime("%H:%M:%S")
 
+# Signal-Zustand vorab prüfen für CSS-Steuerung
+is_bullish = current_price > avg_price
+abstand_absolut = abs(current_price - avg_price)
+ist_nah_am_durchschnitt = abstand_absolut <= 1.50
+
+# Falls ein Signal aktiv ist, wird die CSS-Klasse für den pulsierenden Rahmen geladen
+border_css = ""
+if ist_nah_am_durchschnitt:
+    border_css = """
+    .block-container {
+        border: 3px solid #bf953f !important;
+        border-radius: 15px !important;
+        padding: 50px 15px 15px 15px !important;
+        box-shadow: 0 0 20px rgba(191, 149, 63, 0.5) !important;
+        animation: goldPulse 2s infinite alternate !important;
+    }
+    @keyframes goldPulse {
+        0% { box-shadow: 0 0 10px rgba(191, 149, 63, 0.3); border-color: #b38728; }
+        100% { box-shadow: 0 0 25px rgba(252, 246, 186, 0.8); border-color: #fcf6ba; }
+    }
+    """
+
+# --- HIGH-END UI DESIGN (CSS) ---
+st.markdown(f"""
+    <style>
+    /* Standard-Layout & Sicherer Abstand nach oben */
+    .block-container {{ padding-top: 50px !important; padding-bottom: 0.5rem !important; max-width: 550px !important; transition: all 0.5s ease; }}
+    
+    /* Pulsierender Gold-Rahmen bei Signal */
+    {border_css}
+    
+    /* ANIMIERTER GOLD SCHRIFTZUG & MATTES ROT */
+    .gold-title {{
+        font-size: 1.4rem !important;
+        font-weight: 900;
+        text-align: center;
+        margin-top: 0px !important;
+        margin-bottom: 0.2rem !important;
+        letter-spacing: 1px;
+        background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fcf6ba, #bf953f);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-size: 200% auto;
+        animation: shine 3s linear infinite;
+        display: block;
+    }}
+    @keyframes shine {{ to {{ background-position: 200% center; }} }}
+    .pro-red {{ color: #b91c1c !important; font-weight: 900; -webkit-text-fill-color: #b91c1c !important; }}
+    
+    /* Live-Schrift */
+    .status-online {{ font-size: 1.2rem !important; font-weight: bold; text-align: center; color: #00ff88; margin-bottom: 0.6rem !important; text-shadow: 0 0 10px rgba(0,255,136,0.3); }}
+    .status-offline {{ font-size: 1.2rem !important; font-weight: bold; text-align: center; color: #ff3333; margin-bottom: 0.6rem !important; }}
+    
+    /* ERZWUNGENE HORIZONTALE ANORDNUNG */
+    .trade-container {{
+        display: flex;
+        justify-content: space-between;
+        gap: 5px;
+        margin-top: 0px !important;
+        margin-bottom: 10px !important;
+    }}
+    .trade-box {{
+        flex: 1;
+        background-color: #1e222b;
+        border: 1px solid #3f444e;
+        border-radius: 8px;
+        padding: 9px 4px !important;
+        text-align: center;
+    }}
+    .trade-label {{ font-size: 0.8rem !important; color: #94a3b8; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }}
+    .trade-value {{ font-size: 1.35rem !important; color: #fff; font-weight: 900; display: block; margin-top: 3px !important; margin-bottom: 1px !important; }}
+    .delta-plus {{ color: #ff3333; font-size: 0.72rem !important; font-weight: bold; }}
+    .delta-minus {{ color: #00ff88; font-size: 0.72rem !important; font-weight: bold; }}
+
+    /* Signal Zone Styles */
+    .signal-buy {{ background-color: #052e16; border: 2px solid #00ff88; color: #00ff88; padding: 8px !important; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 0.25rem !important; }}
+    .signal-sell {{ background-color: #2d0606; border: 2px solid #ff3333; color: #ff3333; padding: 8px !important; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 0.25rem !important; }}
+    .signal-wait {{ background-color: #3b2a06; border: 2px solid #ffaa00; color: #ffaa00; padding: 8px !important; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 0.25rem !important; }}
+    
+    /* Positionsgrößen-Box */
+    .lot-box {{ background: linear-gradient(135deg, #1e293b, #0f172a); border-left: 5px solid #38bdf8; padding: 9px !important; border-radius: 4px; margin-bottom: 10px !important; }}
+
+    /* REFRESH BUTTON POSITION */
+    div.stButton > button {{
+        position: fixed !important;
+        right: 25px !important;
+        bottom: 135px !important;
+        z-index: 999999 !important;
+        border-radius: 50% !important;
+        width: 54px !important;
+        height: 54px !important;
+        background-color: #38bdf8 !important;
+        color: white !important;
+        border: 3px solid #ffffff !important;
+        box-shadow: 0px 4px 15px rgba(255, 255, 255, 0.4) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }}
+    div.stButton > button p {{ display: none !important; }}
+    div.stButton > button::before {{ content: "↻" !important; font-size: 24px; font-weight: bold; }}
+    
+    [data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] {{ display: none !important; }}
+
+    /* ZENTRIERUNG FÜR DEN EINSTELLUNGS-BUTTON */
+    div[data-testid="stExpander"] {{
+        display: block !important;
+        margin: 0 auto !important;
+        text-align: center !important;
+        width: 100% !important;
+    }}
+    div[data-testid="stExpander"] > details {{
+        display: inline-block !important;
+        margin: 0 auto !important;
+        text-align: left !important;
+    }}
+    div[data-testid="stExpander"] details summary {{
+        display: flex !important;
+        justify-content: center !important; 
+        align-items: center !important;
+        gap: 8px !important;
+        background-color: #1e222b !important;
+        border: 1px solid #3f444e !important;
+        border-radius: 8px !important;
+        padding: 5px 14px !important;
+        width: fit-content !important;
+        margin: 0 auto !important;
+        height: auto !important;
+    }}
+    div[data-testid="stExpander"] details summary svg {{ fill: #94a3b8 !important; color: #94a3b8 !important; }}
+    div[data-testid="stExpander"] details summary p {{ margin: 0 !important; font-weight: bold !important; color: #fff !important; font-size: 0.9rem !important; }}
+
+    div[data-testid="stExpander"] details div[data-testid="stExpanderDetails"] {{
+        background-color: #1e222b !important;
+        border: 1px solid #3f444e !important;
+        border-radius: 8px !important;
+        padding: 12px !important;
+        width: 280px !important;
+        margin: 4px auto 0 auto !important;
+    }}
+    </style>
+""", unsafe_allow_html=True)
+
+# --- AUTOMATISCHES REFRESH SCRIPT (60 SEKUNDEN) ---
+st.markdown("""
+    <script>
+    setInterval(function(){
+        window.parent.document.querySelector('.stButton button').click();
+    }, 60000);
+    </script>
+""", unsafe_allow_html=True)
+
 # UI Header
 st.markdown('<div class="gold-title">💰 GOLD SCALPING <span class="pro-red">PRO</span></div>', unsafe_allow_html=True)
 
@@ -169,21 +199,22 @@ if is_live:
 else:
     st.markdown(f"<div class='status-offline'>○ Markt offline (Demo-Modus) • {now}</div>", unsafe_allow_html=True)
 
-# --- SIGNAL ANZEIGEN & FLIESSENDE DYNAMIK-BERECHNUNG ---
-is_bullish = current_price > avg_price
-abstand_absolut = abs(current_price - avg_price)
-ist_nah_am_durchschnitt = abstand_absolut <= 1.50
-
-# Wahrscheinlichkeits-Berechnung für aktiven Trade
+# --- SIGNAL ANZEIGEN & SOUND STRUKTUR ---
 abstand_prozent = abstand_absolut / avg_price
 basis_chance = 60 if is_bullish else 40
 zusatz_chance = min(35, int(abstand_prozent * 5000))
 prob = min(95, basis_chance + zusatz_chance)
 
-# Lebendige, fließende Dynamik-Berechnung (20$ Abstand entspricht 100% Trendstärke)
 dynamik = min(99, int((abstand_absolut / 20.0) * 100)) if abstand_absolut > 0 else 0
 
 if ist_nah_am_durchschnitt:
+    # Dezenter Sound-Effekt (Notification Ping) via HTML5 Audio
+    st.markdown("""
+        <audio autoplay>
+            <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-500.wav" type="audio/wav">
+        </audio>
+    """, unsafe_allow_html=True)
+
     if is_bullish:
         st.markdown(f"<div class='signal-buy'>🚀 BUY SIGNAL AKTIV • STÄRKE {prob}%</div>", unsafe_allow_html=True)
     else:
@@ -215,7 +246,7 @@ else:
 
 lots = round(risk_val / (sl_val * 100), 2)
 
-# HORIZONTALE TRADE-BOXEN
+# TRADE-BOXEN
 trade_html = f"""
 <div class="trade-container">
     <div class="trade-box">
@@ -244,7 +275,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# --- DETAILS MIT ANPASSUNGEN ---
+# --- DETAILS ---
 with st.expander("🔍 Details & Lot-Rechner einblenden"):
     st.write("**Tagesstatistiken (Rollierende letzte 24 Std.):**")
     col_stat1, col_stat2 = st.columns(2)
@@ -264,6 +295,6 @@ with st.expander("🔍 Details & Lot-Rechner einblenden"):
     - **Lot-Formel:** Berechnung basiert auf dem eingestellten Dollar-Risiko geteilt durch den Stop-Loss-Abstand (Multiplikator 100 pro Punkt im Gold-Future).
     """)
 
-# Schwebender Refresh Button
+# Schwebender Refresh Button (wird auch vom Auto-Refresh-Skript getriggert)
 if st.button("Refresh"):
     st.rerun()

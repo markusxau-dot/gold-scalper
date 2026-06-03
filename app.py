@@ -12,11 +12,11 @@ st.markdown("""
     .block-container { padding-top: 1rem; padding-bottom: 1rem; max-width: 550px !important; }
     h1 { font-size: 1.6rem !important; text-align: center; color: #fff; margin-bottom: 0.5rem; }
     
-    /* 1. Live-Schrift Größer & Dynamisch */
+    /* Live-Schrift Größer & Dynamisch */
     .status-online { font-size: 1.2rem !important; font-weight: bold; text-align: center; color: #00ff88; margin-bottom: 1rem; text-shadow: 0 0 10px rgba(0,255,136,0.3); }
     .status-offline { font-size: 1.2rem !important; font-weight: bold; text-align: center; color: #ff3333; margin-bottom: 1rem; }
     
-    /* 2. ERZWUNGENE HORIZONTALE ANORDNUNG (Einstieg, SL, TP) */
+    /* ERZWUNGENE HORIZONTALE ANORDNUNG (Einstieg, SL, TP) */
     .trade-container {
         display: flex;
         justify-content: space-between;
@@ -42,7 +42,7 @@ st.markdown("""
     
     .lot-box { background: linear-gradient(135deg, #1e293b, #0f172a); border-left: 5px solid #38bdf8; padding: 12px; border-radius: 4px; margin-bottom: 15px; }
 
-    /* 3. KLEINERER STICKY BUTTON MIT AUFFÄLLIGER UMRANDUNG */
+    /* STICKY REFRESH BUTTON MIT NEONGELBER UMRANDUNG */
     div.stButton > button {
         position: fixed !important;
         right: 10px !important;
@@ -50,12 +50,12 @@ st.markdown("""
         transform: translateY(-50%) !important;
         z-index: 999999 !important;
         border-radius: 50% !important;
-        width: 45px !important; /* Etwas kleiner */
-        height: 45px !important; /* Etwas kleiner */
+        width: 45px !important;
+        height: 45px !important;
         background-color: #38bdf8 !important;
         color: white !important;
-        border: 3px solid #ccff00 !important; /* Auffällige neongelbe Umrandung */
-        box-shadow: 0px 0px 15px rgba(204, 255, 0, 0.6) !important; /* Leucht-Effekt */
+        border: 3px solid #ccff00 !important;
+        box-shadow: 0px 0px 15px rgba(204, 255, 0, 0.6) !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -65,49 +65,70 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- LOGIK ---
+# --- DATENABRUF UND LOGIK ---
 class GoldLogic:
     def __init__(self):
         self.symbol = "GC=F"
     
     def get_data(self):
         try:
+            # 3 Tage abrufen, um den gleitenden Durchschnitt (SMA 20) zu berechnen
             ticker = yf.Ticker(self.symbol)
-            data = ticker.history(period="1d", interval="1m")
-            if data.empty: return None, False
-            current = data['Close'].iloc[-1]
-            return round(current, 2), True
-        except: return 2350.50, False
+            data = yf.download(tickers=self.symbol, period="3d", interval="15m", progress=False)
+            
+            if data.empty or len(data) < 5: 
+                return None, 0.0, 0.0, 0.0, False
+                
+            close_prices = data['Close'].values.flatten()
+            current_price = float(close_prices[-1])
+            avg_price = float(np.mean(close_prices[-20:]))
+            
+            fast_info = ticker.fast_info
+            high_today = float(fast_info.get('day_high', current_price))
+            low_today = float(fast_info.get('day_low', current_price))
+            
+            return round(current_price, 2), round(high_today, 2), round(low_today, 2), round(avg_price, 2), True
+        except: 
+            return 2350.50, 2365.00, 2340.00, 2345.00, False
 
 db = GoldLogic()
-current_price, is_live = db.get_data()
+current_price, high_today, low_today, avg_price, is_live = db.get_data()
 now = datetime.datetime.now().strftime("%H:%M:%S")
 
-# UI
+# UI Header
 st.markdown("<h1>💰 GOLD SCALPER PRO</h1>", unsafe_allow_html=True)
 
 if is_live:
     st.markdown(f"<div class='status-online'>● Live-Daten aktiv • {now}</div>", unsafe_allow_html=True)
 else:
-    st.markdown(f"<div class='status-offline'>○ Markt offline • {now}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='status-offline'>○ Markt offline (Demo-Modus) • {now}</div>", unsafe_allow_html=True)
 
-# Eingabe
+# Eingabe-Regler
 c_in1, c_in2 = st.columns(2)
 with c_in1: sl_val = st.slider("Stop Loss ($)", 1.0, 10.0, 3.0, 0.5)
 with c_in2: risk_val = st.number_input("Risiko (€)", 10, 1000, 50, 10)
 
-# Berechnung (Beispielhaft Bullish)
-is_bullish = True 
-sl_price = current_price - sl_val
-tp_price = current_price + (sl_val * 3)
-lots = round(risk_val / (sl_val * 100), 2)
+# SIGNAL-BERECHNUNG & VARIABLE PROZENT-CHANCE
+is_bullish = current_price > avg_price
+abstand_prozent = abs(current_price - avg_price) / avg_price
+basis_chance = 60 if is_bullish else 40
+zusatz_chance = min(35, int(abstand_prozent * 5000))
 
 if is_bullish:
-    st.markdown(f"<div class='signal-buy'>🚀 BUY ZONE AKTIV</div>", unsafe_allow_html=True)
+    prob = min(95, basis_chance + zusatz_chance)
+    sl_price = current_price - sl_val
+    tp_price = current_price + (sl_val * 3)
+    st.markdown(f"<div class='signal-buy'>🚀 BUY ZONE • TREND-STÄRKE {prob}%</div>", unsafe_allow_html=True)
 else:
-    st.markdown(f"<div class='signal-sell'>💥 SELL ZONE AKTIV</div>", unsafe_allow_html=True)
+    prob = min(95, basis_chance + zusatz_chance)
+    sl_price = current_price + sl_val
+    tp_price = current_price - (sl_val * 3)
+    st.markdown(f"<div class='signal-sell'>💥 SELL ZONE • TREND-STÄRKE {prob}%</div>", unsafe_allow_html=True)
 
-# --- HORIZONTALE TRADE-BOXEN (Fixiert für Mobile) ---
+# Positionsgröße berechnen
+lots = round(risk_val / (sl_val * 100), 2)
+
+# HORIZONTALE TRADE-BOXEN (Fixiert für Mobile via CSS Flexbox)
 st.markdown(f"""
     <div class="trade-container">
         <div class="trade-box">
@@ -117,22 +138,32 @@ st.markdown(f"""
         <div class="trade-box" style="border-color: #7f1d1d;">
             <span class="trade-label">Stop Loss</span>
             <span class="trade-value">{round(sl_price, 2)}</span>
-            <span class="delta-plus">-{sl_val}$</span>
+            <span class="delta-plus">{"-" if is_bullish else "+"}{sl_val}$</span>
         </div>
         <div class="trade-box" style="border-color: #064e3b;">
             <span class="trade-label">Take Profit</span>
             <span class="trade-value">{round(tp_price, 2)}</span>
-            <span class="delta-minus">+{sl_val*3}$</span>
+            <span class="delta-minus">{"+" if is_bullish else "-"}{sl_val*3}$</span>
         </div>
     </div>
 """, unsafe_allow_html=True)
 
+# Hauptanzeige Lots
 st.markdown(f"""
     <div class='lot-box'>
         <span style='color: #38bdf8; font-weight: bold; font-size: 0.8rem;'>POSITIONSGRÖSSE</span><br>
         <span style='font-size: 1.5rem; font-weight: bold; color: #fff;'>{lots} Lots</span>
     </div>
 """, unsafe_allow_html=True)
+
+# --- DAS AUSKLAPPBARE FENSTER FÜR DETAILS (EXPANDER) ---
+with st.expander("🔍 Details & Lot-Rechner einblenden"):
+    st.info(f"Um bei einem Verlust exakt **{risk_val} €** zu riskieren, musst du im MetaTrader 5 eine Positionsgröße von **{lots} Lots** eingeben.")
+    st.markdown("---")
+    st.write("**Tagesstatistiken (Heute):**")
+    col_stat1, col_stat2 = st.columns(2)
+    with col_stat1: st.metric(label="Höchstkurs (High)", value=f"{high_today} $")
+    with col_stat2: st.metric(label="Tiefstkurs (Low)", value=f"{low_today} $")
 
 # Schwebender Refresh Button
 if st.button("Refresh"):

@@ -188,21 +188,24 @@ else:
     st.markdown(f"<div class='signal-wait'>⏳ MARKT BEOBACHTEN • Trend ist {'Up' if is_bullish else 'Down'} (Warte auf Rücksetzer)</div>", unsafe_allow_html=True)
 
 
-# --- REIN MITTIG ZENTRIERTER BUTTON "EINSTELLUNGEN" ---
+# --- REIN MITTIG ZENTRIERTER BUTTON "EINSTELLUNGEN" MIT NEUEM CRV-SLIDER ---
 with st.expander("Einstellungen", expanded=False):
     sl_val = st.slider("Stop Loss ($)", 3.0, 10.0, 3.0, 0.5)
-    risk_val = st.number_input("Risiko ($)", 10, 1000, 50, 10)  # Euro in Dollar geändert
+    crv_val = st.slider("Chance-Risiko-Verhältnis (1:X)", 1.0, 5.0, 3.0, 0.5) # Neuer CRV Slider
+    risk_val = st.number_input("Risiko ($)", 10, 1000, 50, 10)
 
 
-# --- BERECHNUNGEN ---
+# --- BERECHNUNGEN (DYNAMISCH BASIEREND AUF CRV) ---
+tp_abstand = sl_val * crv_val  # Berechnet den TP-Abstand anhand des gewählten Sliders
+
 if is_bullish:
     sl_price = current_price - sl_val
-    tp_price = current_price + (sl_val * 3)
+    tp_price = current_price + tp_abstand
     prefix_sl = "-"
     prefix_tp = "+"
 else:
     sl_price = current_price + sl_val
-    tp_price = current_price - (sl_val * 3)
+    tp_price = current_price - tp_abstand
     prefix_sl = "+"
     prefix_tp = "-"
 
@@ -223,7 +226,7 @@ trade_html = f"""
     <div class="trade-box" style="border-color: #064e3b;">
         <span class="trade-label">Take Profit</span>
         <span class="trade-value">{round(tp_price, 2)}</span>
-        <span class="delta-minus">{prefix_tp}{sl_val*3}$</span>
+        <span class="delta-minus">{prefix_tp}{round(tp_abstand, 2)}$</span>
     </div>
 </div>
 """
@@ -247,17 +250,17 @@ with st.expander("🔍 Details & Lot-Rechner einblenden"):
     
     st.markdown("---")
     
-    # 2. Lot-Berechnung Info - Euro in Dollar geändert
+    # 2. Lot-Berechnung Info
     st.info(f"Um bei einem Verlust exakt **{risk_val} $** zu riskieren, musst du im MetaTrader 5 eine Positionsgröße von **{lots} Lots** eingeben.")
     
     st.markdown("---")
     
-    # 3. Trading-Logik & Bedingungen - Euro in Dollar geändert
+    # 3. Trading-Logik & Bedingungen (Dynamisches CRV eingebaut)
     st.write("**Trading-Logik & Bedingungen:**")
     st.markdown(f"""
     - **Trendbestimmung (SMA-20):** Der Kurs befindet sich aktuell *{'über (Bullish)' if is_bullish else 'unter (Bearish)'}* dem gleitenden Durchschnitt der letzten 20 Kerzen. Es werden nur Trades in Trendrichtung vorgeschlagen.
     - **Einstiegs-Trigger:** Ein Signal schaltet erst auf aktiv (BUY/SELL), wenn der Abstand zwischen dem Live-Kurs und dem SMA-20 maximal **1.50 $** beträgt (Rücksetzer-Strategie).
-    - **Risiko-Management (CRV 1:3):** Der Take Profit ist fest auf das Dreifache des gewählten Stop Loss eingestellt, um ein mathematisch positives Gewinnverhältnis zu sichern.
+    - **Risiko-Management (CRV 1:{crv_val}):** Der Take Profit ist fest auf das **{crv_val}-Fache** des gewählten Stop Loss eingestellt, um ein mathematisch positives Gewinnverhältnis zu sichern.
     - **Lot-Formel:** Berechnung basiert auf dem eingestellten Dollar-Risiko geteilt durch den Stop-Loss-Abstand (Multiplikator 100 pro Punkt im Gold-Future).
     """)
 

@@ -10,7 +10,7 @@ st.set_page_config(page_title="Gold Scalper Pro", page_icon="💰", layout="cent
 st.markdown("""
     <style>
     /* Sicherer Abstand nach oben (50px), damit nichts mehr abgeschnitten wird */
-    .block-container { padding-top: 50px !important; padding-bottom: 1rem; max-width: 550px !important; }
+    .block-container { padding-top: 40px !important; padding-bottom: 1rem; max-width: 550px !important; }
     
     /* ANIMIERTER GOLD SCHRIFTZUG & MATTES ROT */
     .gold-title {
@@ -65,8 +65,8 @@ st.markdown("""
     /* REFRESH BUTTON POSITION */
     div.stButton > button {
         position: fixed !important;
-        right: 25px !important;
-        bottom: 135px !important;
+        right: 20px !important;
+        bottom: 110px !important;
         z-index: 999999 !important;
         border-radius: 50% !important;
         width: 54px !important;

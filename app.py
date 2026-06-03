@@ -11,7 +11,10 @@ st.markdown("""
     <style>
     .block-container { padding-top: 1rem; padding-bottom: 1rem; max-width: 550px !important; }
     h1 { font-size: 1.8rem !important; margin-bottom: 0.2rem; text-align: center; color: #fff; }
-    .update-text { text-align: center; color: #8a99ad; font-size: 0.8rem; margin-bottom: 1rem; }
+    
+    /* 1. Größere Live-Schrift mit dynamischer Farbe */
+    .status-online { font-size: 1.1rem !important; font-weight: bold; text-align: center; color: #00ff88; margin-bottom: 1rem; }
+    .status-offline { font-size: 1.1rem !important; font-weight: bold; text-align: center; color: #ff3333; margin-bottom: 1rem; }
     
     .signal-buy {
         background-color: #052e16; border: 2px solid #00ff88; color: #00ff88;
@@ -24,6 +27,7 @@ st.markdown("""
         box-shadow: 0 0 15px rgba(255, 51, 51, 0.2); margin-bottom: 1rem;
     }
     
+    /* 2. Horizontale Boxen-Optimierung */
     div[data-testid="stMetricValue"] { font-size: 1.3rem !important; font-weight: bold !important; color: #fff !important; }
     
     div[data-testid="column"]:nth-of-type(1) div[data-testid="metric-container"] {
@@ -39,6 +43,37 @@ st.markdown("""
     .lot-box {
         background: linear-gradient(135deg, #1e293b, #0f172a); border-left: 5px solid #38bdf8;
         padding: 12px; border-radius: 4px; margin-top: 10px; margin-bottom: 15px;
+    }
+    
+    /* 3. Schwebender "Sticky" Button am rechten Bildschirmrand */
+    div.stButton > button {
+        position: fixed !important;
+        right: 15px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        z-index: 999999 !important;
+        border-radius: 50% !important;
+        width: 55px !important;
+        height: 55px !important;
+        background-color: #38bdf8 !important;
+        color: white !important;
+        font-size: 24px !important;
+        border: none !important;
+        box-shadow: 0px 4px 10px rgba(0,0,0,0.4) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: background-color 0.3s, transform 0.1s;
+    }
+    div.stButton > button:active {
+        transform: translateY(-50%) scale(0.9) !important;
+        background-color: #0284c7 !important;
+    }
+    div.stButton > button p {
+        display: none !important; /* Blendet den Standard-Streamlit-Text aus */
+    }
+    div.stButton > button::before {
+        content: "↻" !important; /* Setzt das Aktualisierungs-Symbol */
     }
     </style>
 """, unsafe_allow_html=True)
@@ -70,17 +105,15 @@ class GoldDashboardLogic:
                 
                 is_bullish = current_price > avg_price
                 
-                # VARIABLE PROBABILITY BERECHNUNG (Abstand zum SMA bestimmt die Stärke)
                 abstand_prozent = abs(current_price - avg_price) / avg_price
                 basis_chance = 60 if is_bullish else 40
-                zusatz_chance = min(35, int(abstand_prozent * 5000)) # Dynamischer Bonus je nach Trendstärke
+                zusatz_chance = min(35, int(abstand_prozent * 5000))
                 
                 prob = min(95, basis_chance + zusatz_chance) if is_bullish else max(5, basis_chance - zusatz_chance)
                 
             except: 
                 current_price, high_today, low_today, is_bullish, prob = 2350.0, 2360.0, 2340.0, True, 75
         else: 
-            # Demo/Wochenend-Modus
             current_price, high_today, low_today, is_bullish, prob = 2350.0, 2365.0, 2340.0, True, 75
         
         if is_bullish:
@@ -102,10 +135,11 @@ live_verfuegbar = db.fetch_market_data()
 now = datetime.datetime.now().strftime("%H:%M:%S")
 st.markdown("<h1>💰 GOLD SCALPER PRO</h1>", unsafe_allow_html=True)
 
+# 1. Dynamischer, größerer Live-Status (Grün bei Online, Rot bei Offline)
 if live_verfuegbar:
-    st.markdown(f"<div class='update-text'>🔄 Live-Daten aktiv • Update: {now}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='status-online'>● Live-Daten aktiv • Update: {now}</div>", unsafe_allow_html=True)
 else:
-    st.markdown(f"<div class='update-text' style='color:#ff9900;'>⚠️ Demo-Modus (Märkte geschlossen) • Zeit: {now}</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='status-offline'>○ Markt offline (Demo-Modus) • Zeit: {now}</div>", unsafe_allow_html=True)
 
 # Inputs
 col_input1, col_input2 = st.columns(2)
@@ -116,13 +150,13 @@ with col_input2:
     
 res = db.process(sl_input, risk_input, live_verfuegbar)
 
-# DYNAMISCHES SIGNAL (Mit variabler Prozent-Chance)
+# Dynamische Signal-Anzeige
 if res["is_bullish"]:
     st.markdown(f"<div class='signal-buy'>🚀 BUY ZONE • TREND-STÄRKE {res['prob']}%</div>", unsafe_allow_html=True)
 else:
     st.markdown(f"<div class='signal-sell'>💥 SELL ZONE • TREND-STÄRKE {100 - res['prob']}%</div>", unsafe_allow_html=True)
     
-# Preis-Metriken
+# 2. Horizontale Preisanordnung (Werte direkt unter der Beschreibung)
 c1, c2, c3 = st.columns(3)
 with c1: st.metric("EINSTIEG", res["current"])
 with c2: st.metric("STOP LOSS", res["sl"], delta=f"{'+' if not res['is_bullish'] else '-'}{sl_input}$", delta_color="inverse")
@@ -136,7 +170,7 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# --- DAS AUSKLAPPBARE FENSTER FÜR DETAILS (EXPANDER) ---
+# Das ausklappbare Fenster für Details (Expander)
 with st.expander("🔍 Details & Lot-Rechner einblenden"):
     st.info(f"Um bei einem Verlust exakt **{risk_input} €** zu riskieren, musst du im MetaTrader 5 eine Positionsgröße von **{res['lot']} Lots** eingeben.")
     st.markdown("---")
@@ -145,6 +179,6 @@ with st.expander("🔍 Details & Lot-Rechner einblenden"):
     with col_stat1: st.metric(label="Höchstkurs (High)", value=f"{res['high']} $")
     with col_stat2: st.metric(label="Tiefstkurs (Low)", value=f"{res['low']} $")
 
-st.markdown("---")
-if st.button("🔄 Dashboard live aktualisieren", use_container_width=True):
+# 3. Der schwebende Aktualisierungs-Button (wird via CSS fest verankert)
+if st.button("Refresh"):
     st.rerun()

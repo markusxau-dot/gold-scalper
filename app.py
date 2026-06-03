@@ -31,9 +31,7 @@ st.markdown("""
         padding: 12px 5px;
         text-align: center;
     }
-    /* DEUTLICH GRÖSSERE SCHRIFT FÜR DIE LABEL */
     .trade-label { font-size: 0.85rem; color: #94a3b8; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
-    /* MASSIV GRÖSSERE ZAHLEN FÜR EINSTIEG, SL, TP */
     .trade-value { font-size: 1.4rem; color: #fff; font-weight: 900; display: block; margin-top: 5px; margin-bottom: 3px; }
     .delta-plus { color: #ff3333; font-size: 0.75rem; font-weight: bold; }
     .delta-minus { color: #00ff88; font-size: 0.75rem; font-weight: bold; }
@@ -45,28 +43,43 @@ st.markdown("""
     
     .lot-box { background: linear-gradient(135deg, #1e293b, #0f172a); border-left: 5px solid #38bdf8; padding: 12px; border-radius: 4px; margin-bottom: 15px; }
 
-    /* STICKY REFRESH BUTTON MIT NEONGELBER UMRANDUNG */
+    /* STICKY REFRESH BUTTON UNTEN RECHTS (EINE FINGERBREITE VOM RAND) */
     div.stButton > button {
         position: fixed !important;
-        right: 10px !important;
-        top: 50% !important;
-        transform: translateY(-50%) !important;
+        right: 20px !important;
+        bottom: 25px !important; /* Eine Fingerbreite von unten entfernt */
         z-index: 999999 !important;
         border-radius: 50% !important;
-        width: 45px !important;
-        height: 45px !important;
+        width: 50px !important;
+        height: 50px !important;
         background-color: #38bdf8 !important;
         color: white !important;
         border: 3px solid #ccff00 !important;
-        box-shadow: 0px 0px 15px rgba(204, 255, 0, 0.6) !important;
+        box-shadow: 0px 4px 15px rgba(204, 255, 0, 0.5) !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
     }
     div.stButton > button p { display: none !important; }
-    div.stButton > button::before { content: "↻" !important; font-size: 20px; font-weight: bold; }
+    div.stButton > button::before { content: "↻" !important; font-size: 22px; font-weight: bold; }
+    
+    /* RECHTE SEITENLEISTE (GRAUES HINTERGRUND-STYLING) */
+    [data-testid="stSidebar"] {
+        background-color: #1e222b !important;
+        border-left: 1px solid #3f444e !important;
+    }
     </style>
 """, unsafe_allow_html=True)
+
+# --- NEUES EINSTELLUNGS-MENÜ (SIDEBAR RECHTS) ---
+# Wir weisen Streamlit an, die Sidebar standardmäßig eingeklappt zu lassen.
+# Der Nutzer öffnet sie über den Pfeil am rechten Rand.
+with st.sidebar:
+    st.markdown("<h3 style='color: #fff; text-align: center;'>⚙️ Einstellungen</h3>", unsafe_allow_html=True)
+    st.markdown("---")
+    # Eingaben für Risikomanagement
+    sl_val = st.slider("Stop Loss ($)", 3.0, 10.0, 3.0, 0.5)
+    risk_val = st.number_input("Risiko (€)", 10, 1000, 50, 10)
 
 # --- DATENABRUF UND LOGIK ---
 class GoldLogic:
@@ -109,16 +122,11 @@ if is_live:
 else:
     st.markdown(f"<div class='status-offline'>○ Markt offline (Demo-Modus) • {now}</div>", unsafe_allow_html=True)
 
-# Eingabe-Regler
-c_in1, c_in2 = st.columns(2)
-with c_in1: sl_val = st.slider("Stop Loss ($)", 1.0, 10.0, 3.0, 0.5)
-with c_in2: risk_val = st.number_input("Risiko (€)", 10, 1000, 50, 10)
-
 # --- INTELLIGENTE SIGNAL-PRÜFUNG ---
 is_bullish = current_price > avg_price
 abstand_absolut = abs(current_price - avg_price)
 
-# Bedingung: Der Preis darf maximal 1.50 Dollar vom SMA entfernt sein für ein scharfes Signal (Retest)
+# Bedingung: Der Preis darf maximal 1.50 Dollar vom SMA entfernt sein für ein scharfes Signal
 ist_nah_am_durchschnitt = abstand_absolut <= 1.50
 
 # Trendstärke-Prozentberechnung
@@ -193,6 +201,6 @@ with st.expander("🔍 Details & Lot-Rechner einblenden"):
     with col_stat1: st.metric(label="Höchstkurs (High)", value=f"{high_today} $")
     with col_stat2: st.metric(label="Tiefstkurs (Low)", value=f"{low_today} $")
 
-# Schwebender Refresh Button
+# Schwebender Refresh Button (Jetzt unten rechts fixiert)
 if st.button("Refresh"):
     st.rerun()

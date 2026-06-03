@@ -80,15 +80,67 @@ st.markdown("""
     div.stButton > button p { display: none !important; }
     div.stButton > button::before { content: "↻" !important; font-size: 24px; font-weight: bold; }
     
-    /* URSPRÜNGLICHE STREAMLIT SIDEBAR KOMPLETT AUSBLENDEN */
-    [data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] {
-        display: none !important;
+    /* ORIGINAL SIDEBARS AUSBLENDEN */
+    [data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] { display: none !important; }
+
+    /* --- DROPDOWN RECHTS ANORDNEN & PFEIL NACH LINKS --- */
+    
+    /* Das umschließende Container-Element des Expanders */
+    div[data-testid="stExpander"] {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-end !important; /* Richtet den Block rechts aus */
+        border: none !important;
+        background: transparent !important;
+    }
+
+    /* Der Header des Dropdowns */
+    div[data-testid="stExpander"] details summary {
+        flex-direction: row-reverse !important; /* Spiegelt Pfeil und Text */
+        justify-content: flex-end !important;
+        gap: 15px !important;
+        background-color: #1e222b !important;
+        border: 1px solid #3f444e !important;
+        border-radius: 8px !important;
+        padding: 10px 15px !important;
+        width: fit-content !important; /* Nur so breit wie der Inhalt */
+    }
+
+    /* Pfeil-Icon umdrehen, sodass es standardmäßig nach links zeigt */
+    div[data-testid="stExpander"] details summary svg {
+        transform: rotate(90deg) !important; 
+        transition: transform 0.2s ease-in-out !important;
+    }
+
+    /* Wenn das Menü geöffnet ist, dreht sich der Pfeil nach unten/oben */
+    div[data-testid="stExpander"] details[open] summary svg {
+        transform: rotate(0deg) !important;
+    }
+
+    /* Der aufklappende Inhalt (nach links ausgerichtet) */
+    div[data-testid="stExpander"] details div[data-testid="stExpanderDetails"] {
+        background-color: #1e222b !important;
+        border: 1px solid #3f444e !important;
+        border-radius: 8px !important;
+        padding: 15px !important;
+        width: 280px !important; /* Fixe Breite wie eine kleine Sidebar */
+        margin-top: 5px !important;
+    }
+
+    /* SILBER GLÄNZENDES FEUER ICON */
+    .silver-flame {
+        font-weight: bold;
+        background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 45%, #b8b8b8 70%, #8e8e8e 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0px 0px 4px rgba(255,255,255,0.6));
     }
     </style>
 """, unsafe_allow_html=True)
 
-# --- NEUES DROPDOWN-EINSTELLUNGSMENÜ (STREAMLIT-SIDEBAR ERSATZ) ---
-with st.expander("⚙️ Einstellungen (Stop Loss & Risiko)"):
+# --- RECHTS AUSGERECHTES DROPDOWN-MENÜ ---
+# Wir nutzen HTML im Titel für das spezielle silberne Feuer-Icon
+with st.expander("Einstellungen <span class='silver-flame'>🔥</span>", expanded=False):
     sl_val = st.slider("Stop Loss ($)", 3.0, 10.0, 3.0, 0.5)
     risk_val = st.number_input("Risiko (€)", 10, 1000, 50, 10)
 

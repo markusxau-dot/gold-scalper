@@ -9,16 +9,16 @@ st.set_page_config(page_title="Gold Scalper Pro", page_icon="💰", layout="cent
 # --- HIGH-END UI DESIGN (CSS) ---
 st.markdown("""
     <style>
-    /* Sicherer Abstand nach oben (50px), damit auf Mobilgeräten nichts verschwindet */
-    .block-container { padding-top: 50px !important; padding-bottom: 1rem; max-width: 550px !important; }
+    /* 50px Platz nach oben für Mobilgeräte bleibt als Puffer */
+    .block-container { padding-top: 50px !important; padding-bottom: 0.5rem !important; max-width: 550px !important; }
     
-    /* ANIMIERTER GOLD SCHRIFTZUG & MATTES ROT */
+    /* ANIMIERTER GOLD SCHRIFTZUG & MATTES ROT - Abstand nach unten gekürzt */
     .gold-title {
         font-size: 1.4rem !important;
         font-weight: 900;
         text-align: center;
         margin-top: 0px !important;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.2rem !important; /* Gekürzt von 0.5rem */
         letter-spacing: 1px;
         background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fcf6ba, #bf953f);
         -webkit-background-clip: text;
@@ -30,37 +30,38 @@ st.markdown("""
     @keyframes shine { to { background-position: 200% center; } }
     .pro-red { color: #b91c1c !important; font-weight: 900; -webkit-text-fill-color: #b91c1c !important; }
     
-    /* Live-Schrift Größer & Dynamisch */
-    .status-online { font-size: 1.2rem !important; font-weight: bold; text-align: center; color: #00ff88; margin-bottom: 1rem; text-shadow: 0 0 10px rgba(0,255,136,0.3); }
-    .status-offline { font-size: 1.2rem !important; font-weight: bold; text-align: center; color: #ff3333; margin-bottom: 1rem; }
+    /* Live-Schrift - Abstand nach unten gekürzt */
+    .status-online { font-size: 1.2rem !important; font-weight: bold; text-align: center; color: #00ff88; margin-bottom: 0.6rem !important; text-shadow: 0 0 10px rgba(0,255,136,0.3); }
+    .status-offline { font-size: 1.2rem !important; font-weight: bold; text-align: center; color: #ff3333; margin-bottom: 0.6rem !important; }
     
-    /* ERZWUNGENE HORIZONTALE ANORDNUNG (Einstieg, SL, TP) */
+    /* ERZWUNGENE HORIZONTALE ANORDNUNG (Einstieg, SL, TP) - Abstände optimiert */
     .trade-container {
         display: flex;
         justify-content: space-between;
         gap: 5px;
-        margin-top: 0px !important; /* Abstand nach oben komplett entfernt */
-        margin-bottom: 15px;
+        margin-top: 0px !important;
+        margin-bottom: 10px !important; /* Gekürzt von 15px */
     }
     .trade-box {
         flex: 1;
         background-color: #1e222b;
         border: 1px solid #3f444e;
         border-radius: 8px;
-        padding: 12px 5px;
+        padding: 9px 4px !important; /* Innenabstand um 3px verringert */
         text-align: center;
     }
-    .trade-label { font-size: 0.85rem; color: #94a3b8; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
-    .trade-value { font-size: 1.4rem; color: #fff; font-weight: 900; display: block; margin-top: 5px; margin-bottom: 3px; }
-    .delta-plus { color: #ff3333; font-size: 0.75rem; font-weight: bold; }
-    .delta-minus { color: #00ff88; font-size: 0.75rem; font-weight: bold; }
+    .trade-label { font-size: 0.8rem !important; color: #94a3b8; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+    .trade-value { font-size: 1.35rem !important; color: #fff; font-weight: 900; display: block; margin-top: 3px !important; margin-bottom: 1px !important; }
+    .delta-plus { color: #ff3333; font-size: 0.72rem !important; font-weight: bold; }
+    .delta-minus { color: #00ff88; font-size: 0.72rem !important; font-weight: bold; }
 
-    /* Signal Zone Styles */
-    .signal-buy { background-color: #052e16; border: 2px solid #00ff88; color: #00ff88; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 0.5rem; }
-    .signal-sell { background-color: #2d0606; border: 2px solid #ff3333; color: #ff3333; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 0.5rem; }
-    .signal-wait { background-color: #3b2a06; border: 2px solid #ffaa00; color: #ffaa00; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 0.5rem; }
+    /* Signal Zone Styles - Boxen kompakter gemacht */
+    .signal-buy { background-color: #052e16; border: 2px solid #00ff88; color: #00ff88; padding: 8px !important; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 0.25rem !important; }
+    .signal-sell { background-color: #2d0606; border: 2px solid #ff3333; color: #ff3333; padding: 8px !important; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 0.25rem !important; }
+    .signal-wait { background-color: #3b2a06; border: 2px solid #ffaa00; color: #ffaa00; padding: 8px !important; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 0.25rem !important; }
     
-    .lot-box { background: linear-gradient(135deg, #1e293b, #0f172a); border-left: 5px solid #38bdf8; padding: 12px; border-radius: 4px; margin-bottom: 15px; }
+    /* Positionsgrößen-Box gestaucht */
+    .lot-box { background: linear-gradient(135deg, #1e293b, #0f172a); border-left: 5px solid #38bdf8; padding: 9px !important; border-radius: 4px; margin-bottom: 10px !important; }
 
     /* REFRESH BUTTON POSITION */
     div.stButton > button {
@@ -85,24 +86,22 @@ st.markdown("""
     /* ORIGINAL SIDEBARS VERSTECKT */
     [data-testid="stSidebar"], [data-testid="stSidebarCollapsedControl"] { display: none !important; }
 
-    /* --- EXPANDER RADIKAL KOMPRIMIEREN & ZENTRIEREN --- */
+    /* --- EXPANDER HÖHE & ABSTÄNDE MINIMIERT --- */
     div[data-testid="stExpander"] {
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important; 
         border: none !important;
         background: transparent !important;
-        margin-bottom: 0px !important; /* Entfernt den äußeren unteren Abstand */
+        margin-bottom: 0px !important; 
         padding-bottom: 0px !important;
     }
-
-    /* Das umschließende Element im Streamlit-Grid zwingen, keinen Platz zu verbrauchen */
     div[data-testid="stExpander"] > details {
         margin-bottom: 0px !important;
         padding-bottom: 0px !important;
     }
 
-    /* Der eigentliche Header-Button */
+    /* Der eigentliche Header-Button (Kompakteres Padding) */
     div[data-testid="stExpander"] details summary {
         display: flex !important;
         justify-content: center !important; 
@@ -111,33 +110,21 @@ st.markdown("""
         background-color: #1e222b !important;
         border: 1px solid #3f444e !important;
         border-radius: 8px !important;
-        padding: 6px 18px !important;
+        padding: 5px 14px !important; /* Vertikal um weitere 1px gekürzt */
         width: fit-content !important;
         height: auto !important;
     }
-
-    /* Standard-Pfeilikone farblich anpassen */
-    div[data-testid="stExpander"] details summary svg {
-        fill: #94a3b8 !important;
-        color: #94a3b8 !important;
-    }
-
-    /* Text im Button */
-    div[data-testid="stExpander"] details summary p {
-        margin: 0 !important;
-        font-weight: bold !important;
-        color: #fff !important;
-        font-size: 0.95rem !important;
-    }
+    div[data-testid="stExpander"] details summary svg { fill: #94a3b8 !important; color: #94a3b8 !important; }
+    div[data-testid="stExpander"] details summary p { margin: 0 !important; font-weight: bold !important; color: #fff !important; font-size: 0.9rem !important; }
 
     /* Das aufgeklappte Einstellungsfenster */
     div[data-testid="stExpander"] details div[data-testid="stExpanderDetails"] {
         background-color: #1e222b !important;
         border: 1px solid #3f444e !important;
         border-radius: 8px !important;
-        padding: 15px !important;
+        padding: 12px !important;
         width: 280px !important;
-        margin-top: 5px !important;
+        margin-top: 4px !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -202,13 +189,13 @@ else:
     st.markdown(f"<div class='signal-wait'>⏳ MARKT BEOBACHTEN • Trend ist {'Up' if is_bullish else 'Down'} (Warte auf Rücksetzer)</div>", unsafe_allow_html=True)
 
 
-# --- PERFEKT ZENTRIERTER BUTTON (ABSTAND NACH UNTEN ELIMINIERT) ---
+# --- MITTIG ZENTRIERTER BUTTON (ABSTAND NACH UNTEN DRASTISCH MINIMIERT) ---
 with st.expander("Einstellungen", expanded=False):
     sl_val = st.slider("Stop Loss ($)", 3.0, 10.0, 3.0, 0.5)
     risk_val = st.number_input("Risiko (€)", 10, 1000, 50, 10)
 
 
-# --- DIREKT DARUNTER FOLGENDE ANZEIGEN ---
+# --- BERECHNUNGEN & AUSGABEN ---
 if is_bullish:
     sl_price = current_price - sl_val
     tp_price = current_price + (sl_val * 3)
@@ -246,8 +233,8 @@ st.markdown(trade_html, unsafe_allow_html=True)
 # Lot Anzeige
 st.markdown(f"""
 <div class='lot-box'>
-    <span style='color: #38bdf8; font-weight: bold; font-size: 0.8rem;'>POSITIONSGRÖSSE</span><br>
-    <span style='font-size: 1.5rem; font-weight: bold; color: #fff;'>{lots} Lots</span>
+    <span style='color: #38bdf8; font-weight: bold; font-size: 0.75rem;'>POSITIONSGRÖSSE</span><br>
+    <span style='font-size: 1.4rem; font-weight: bold; color: #fff;'>{lots} Lots</span>
 </div>
 """, unsafe_allow_html=True)
 
